@@ -5,6 +5,7 @@
   ],
   "parser": "@typescript-eslint/parser",
   "extends": [
+    "next/core-web-vitals",
     "next",
     "prettier",
     "plugin:react/recommended",
