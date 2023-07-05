@@ -1,4 +1,5 @@
 module.exports = {
+    mode: 'jit',
     content: [
         "./src/**/*.{js,ts,jsx,tsx}",
     ],
@@ -1003,5 +1004,7 @@ module.exports = {
             50: '50',
         },
     },
-    plugins: [],
+    plugins: [
+        "./src/**/*.{js,ts,jsx,tsx}",
+    ],
 }

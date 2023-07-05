@@ -1,9 +1,19 @@
-import Layout from '../components/layout'
 import '../styles/global.css'
-export default function MyAppComponent({Component, pageProps}) {
+import {Layout} from "@/components";
+import {SWRConfig} from 'swr'
+
+const MyAppComponent = ({Component, pageProps}) => {
     return (
-        <Layout>
-            <Component {...pageProps} />
-        </Layout>
+        <SWRConfig
+            value={{
+                fetcher: (resource, init) => fetch(`http://localhost:3000${resource}`, init).then(res => res.json())
+            }}
+        >
+            <Layout>
+                <Component {...pageProps} />
+            </Layout>
+        </SWRConfig>
     )
 }
+
+export default MyAppComponent;

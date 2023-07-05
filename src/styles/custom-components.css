@@ -1,0 +1,3 @@
+div#__next {
+    @apply min-h-full flex flex-col
+}

@@ -3,16 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 8080",
+    "dev": "next dev -p 3001",
     "build": "next build",
-    "start": "next start -p 8080",
-    "lint": "yarn eslint ."
+    "start": "next start",
+    "lint": "yarn eslint .",
+    "server": "cd server && yarn install && yarn start"
   },
   "dependencies": {
+    "@heroicons/react": "^2.0.18",
     "@types/node": "20.3.0",
     "@types/react": "18.2.11",
     "@types/react-dom": "18.2.4",
     "autoprefixer": "10.4.14",
+    "axios": "^1.4.0",
     "eslint": "^8.42.0",
     "eslint-config-next": "13.4.5",
     "next": "13.4.5",
