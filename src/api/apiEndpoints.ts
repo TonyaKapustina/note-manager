@@ -1,4 +1,4 @@
 export const apiEndpoints = {
-    directoriesList: () => `/directories`,
-    directory: (id: number) => `/directories/${id}`
+    directoriesList: () => `/api/directories`,
+    directory: (id: number) => `/api/directories/${id}`
 };

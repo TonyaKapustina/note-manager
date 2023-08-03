@@ -17,7 +17,7 @@ app.get('/', function (req, res) {
 app.use('/directories', directoriesRouter)
 app.use('/notices', noticesRouter)
 
-var server = app.listen(3000, function () {
+var server = app.listen(4000, function () {
   var port = server.address().port
   console.log('Server for course started at %s port', chalk.green(port))
 })

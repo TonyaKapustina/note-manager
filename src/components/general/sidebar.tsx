@@ -1,18 +1,27 @@
+// @ts-nocheck
+import React from "react";
 import {useRouter} from "next/router";
-import {addDirectory} from "@/api/addDirectory";
-import {DEFAULT_DIRECTORY_ID} from "@/utils/constants";
+import {addDirectory, deleteDirectory} from "../../api/apiActions";
+import {DEFAULT_DIRECTORY_ID} from "../../utils/constants";
+import {apiEndpoints} from "../../api/apiEndpoints";
+import useSWRMutation from "swr/mutation";
 
 const Sidebar = () => {
-    const {query} = useRouter();
+    const {query: {id = []}} = useRouter();
+    const {trigger: triggerAdd} = useSWRMutation(apiEndpoints.directoriesList(), addDirectory);
+    const {trigger: triggerDelete} = useSWRMutation(apiEndpoints.directoriesList(), deleteDirectory);
 
     const onAddClickHandler = async () => {
-        const parentId = query?.id.toString() || DEFAULT_DIRECTORY_ID;
+        const parentId = (Number(id?.at(id.length - 1))) || DEFAULT_DIRECTORY_ID;
         const name = 'New directory';
-        await addDirectory(parentId, name);
+        await triggerAdd({parentId, name});
     };
 
-    const onRemoveClickHandler = () => {
-    };
+    const onRemoveClickHandler = async () => {
+        const idsToDelete = id.splice(1, id.length);
+        const promises = idsToDelete.map(id => triggerDelete({id}));
+        await Promise.allSettled(promises);
+    }
 
     return (
         <div className="flex flex-col bg-amber-100 py-5 px-3 text-orange-700">

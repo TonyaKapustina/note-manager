@@ -1,12 +1,15 @@
-import '../styles/global.css'
-import {Layout} from "@/components";
+import React from "react";
+import {Layout} from "../components";
 import {SWRConfig} from 'swr'
+import {AppProps} from "next/app";
 
-const MyAppComponent = ({Component, pageProps}) => {
+import '../styles/global.css'
+
+const MyAppComponent = ({Component, pageProps}: AppProps) => {
     return (
         <SWRConfig
             value={{
-                fetcher: (resource, init) => fetch(`http://localhost:3000${resource}`, init).then(res => res.json())
+                fetcher: (resource, init) => fetch(resource, init).then(res => res.json())
             }}
         >
             <Layout>

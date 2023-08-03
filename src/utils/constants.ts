@@ -1,1 +1,1 @@
-export const DEFAULT_DIRECTORY_ID = '1';
+export const DEFAULT_DIRECTORY_ID = 1;
