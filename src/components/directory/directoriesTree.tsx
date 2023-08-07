@@ -7,17 +7,19 @@ interface IDirectoriesList {
     directoriesList: directoryType[]
 }
 
-export const DirectoriesTree: FC<IDirectoriesList> = ({directoriesList}) => {
+export const DirectoriesTree: FC<IDirectoriesList> = ({directoriesList = []}) => {
     const {query: {id = []}} = useRouter();
 
     return (
-        <ul className="w-full pl-2">
+        <ul className="w-full">
             {
                 directoriesList.map((item) => (<li key={item.id}>
                             <Directory directory={item} directoriesList={directoriesList}/>
                             {
                                 !!item.children.length && id.length && id.includes(item.id.toString()) &&
-                                <DirectoriesTree directoriesList={item.children}/>
+                                <div className="pl-2">
+                                    <DirectoriesTree directoriesList={item.children}/>
+                                </div>
                             }
                         </li>
                     )

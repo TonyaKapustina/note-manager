@@ -1,0 +1,1 @@
+export const isNoticeTitleNotUnique = (noticesList, noticeId, noticeTitle) => noticesList.filter((notice) => notice.id !== noticeId).some(({title}) => title === noticeTitle.trim());

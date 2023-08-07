@@ -3,7 +3,7 @@ import React, {FC, useState} from "react";
 import {useRouter} from "next/router";
 import Link from "next/link";
 import {directoryType} from "../../interfaces/directories";
-import {EditField} from "./editField";
+import {InputField} from "./inputField";
 import useSWRMutation from "swr/mutation";
 import {apiEndpoints} from "../../api/apiEndpoints";
 import {editDirectory} from "../../api/apiActions";
@@ -22,7 +22,7 @@ export const Directory: FC<DirectoryPropsType> = ({directory}) => {
     const [isEditing, setIsEditing] = useState(false);
     const [directoryName, setDirectoryName] = useState(directory.name);
 
-    const onEditFieldKeyDown = async (event) => {
+    const onEditFieldKeyDownHandler = async (event) => {
         if (event.key === "Enter" || event.key === "Escape") {
             event.target.blur();
 
@@ -37,8 +37,8 @@ export const Directory: FC<DirectoryPropsType> = ({directory}) => {
             }
         }
     }
-
-    const onEditFieldBlur = async (event) => {
+// TODO: add validation on duplicated names
+    const onEditFieldBlurHandler = async (event) => {
         const {target: {value}} = event;
         if (value.trim() === "") {
             setDirectoryName(directoryName);
@@ -58,36 +58,31 @@ export const Directory: FC<DirectoryPropsType> = ({directory}) => {
         }
     }
 
-    const renderDirectory = () => (
-        <Link href={`/${directory.path.join('/')}`}>
-            <div
-                className={`flex flex-row items-center ${isDirectoryOpen ? "text-blue-700" : "text-orange-700"}`}>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
-                     stroke="currentColor" className="w-6 h-6">
-                    <path strokeLinecap="round" strokeLinejoin="round"
-                          d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z"/>
-                </svg>
-                <p className="px-2">
-                    {directory.id}: {directory.name}
-                </p>
-            </div>
-        </Link>
-    );
-
-    const renderEditField = () => (
-        <EditField
-            value={directoryName}
-            setValue={setDirectoryName}
-            onBlur={onEditFieldBlur}
-            onKeyDown={onEditFieldKeyDown}
-        />
-    )
-
-
     return (
         <div className={'flex flex-row items-center justify-between p-2'}>
             {
-                isEditing ? renderEditField() : renderDirectory()
+                isEditing ?
+                    <InputField
+                        name="directoryName"
+                        value={directoryName}
+                        onChange={setDirectoryName}
+                        onBlur={onEditFieldBlurHandler}
+                        onKeyDown={onEditFieldKeyDownHandler}
+                    />
+                    :
+                    <Link href={`/${directory.path.join('/')}`}>
+                        <div
+                            className={`flex flex-row items-center ${isDirectoryOpen ? "text-blue-700" : "text-orange-700"}`}>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
+                                 stroke="currentColor" className="w-6 h-6">
+                                <path strokeLinecap="round" strokeLinejoin="round"
+                                      d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z"/>
+                            </svg>
+                            <p className="px-2">
+                                {directory.id}: {directory.name}
+                            </p>
+                        </div>
+                    </Link>
             }
 
             <div onClick={() => setIsEditing(true)}>

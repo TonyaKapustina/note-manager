@@ -4,6 +4,7 @@ import {SWRConfig} from 'swr'
 import {AppProps} from "next/app";
 
 import '../styles/global.css'
+import {SnackbarProvider} from "notistack";
 
 const MyAppComponent = ({Component, pageProps}: AppProps) => {
     return (
@@ -12,9 +13,16 @@ const MyAppComponent = ({Component, pageProps}: AppProps) => {
                 fetcher: (resource, init) => fetch(resource, init).then(res => res.json())
             }}
         >
-            <Layout>
-                <Component {...pageProps} />
-            </Layout>
+            <SnackbarProvider
+                maxSnack={3}
+                anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+            }}>
+                <Layout>
+                    <Component {...pageProps} />
+                </Layout>
+            </SnackbarProvider>
         </SWRConfig>
     )
 }

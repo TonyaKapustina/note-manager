@@ -12,10 +12,11 @@ export const Layout: FC<LayoutPropsType> = ({children}) => {
             <Header/>
             <main className="flex grow min-h-full">
                 <Sidebar/>
-                <section className="flex grow container py-4">
+                <section className="flex grow p-4">
                     {children}
                 </section>
             </main>
+            <div id="modal-root"></div>
         </div>
     )
 }
