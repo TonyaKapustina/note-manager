@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import "./toggleSwitch.css";
+
 @layer base {
     html {
         @apply h-full
@@ -14,4 +16,35 @@
 
 div#__next {
     @apply min-h-full flex flex-col
+}
+
+.tooltip {
+    @apply fixed p-2 bg-slate-800 text-white rounded w-44;
+}
+
+.dashboard-layout {
+    display: grid;
+    grid-template-areas:
+            "b a"
+            "b c"
+            "b c";
+    grid-template-rows: 50px 1fr;
+    grid-template-columns: 30% 1fr;
+    gap: 20px;
+    width: 100%;
+}
+
+.dashboard-directories {
+    display: grid;
+    grid-area: b;
+}
+
+.dashboard-search {
+    display: grid;
+    grid-area: a;
+}
+
+.dashboard-notices {
+    display: grid;
+    grid-area: c;
 }

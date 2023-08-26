@@ -42,7 +42,7 @@ export const addNotice = async (url, {arg}: { id, title, description, tags }) =>
 }
 
 export const editNotice = async (url, {arg}: { id, title, description, tags, position }) => {
-    await fetch(url, {
+    return await fetch(`${url}/${arg.id}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json; charset=UTF-8'

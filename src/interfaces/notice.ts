@@ -5,3 +5,8 @@ export type NoticeType = {
     position?: number,
     tags?: string[]
 }
+
+export enum NoticeSizeEnum {
+    SMALL = 10,
+    LARGE = 20
+}

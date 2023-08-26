@@ -25,7 +25,7 @@ export const InputField: FC<EditFieldPropsType> = ({
     }
 
     return (
-        <div>
+        <>
             <input
                 type="text"
                 name={name}
@@ -44,6 +44,6 @@ export const InputField: FC<EditFieldPropsType> = ({
                     </small>
                 )
             }
-        </div>
+        </>
     )
 }

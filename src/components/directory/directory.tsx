@@ -3,7 +3,7 @@ import React, {FC, useState} from "react";
 import {useRouter} from "next/router";
 import Link from "next/link";
 import {directoryType} from "../../interfaces/directories";
-import {InputField} from "./inputField";
+import {InputField} from "../general/inputField";
 import useSWRMutation from "swr/mutation";
 import {apiEndpoints} from "../../api/apiEndpoints";
 import {editDirectory} from "../../api/apiActions";
@@ -40,7 +40,7 @@ export const Directory: FC<DirectoryPropsType> = ({directory}) => {
 // TODO: add validation on duplicated names
     const onEditFieldBlurHandler = async (event) => {
         const {target: {value}} = event;
-        if (value.trim() === "") {
+        if (value.trim() === "" || value.trim() === directoryName) {
             setDirectoryName(directoryName);
             setIsEditing(false);
         } else {
@@ -57,6 +57,8 @@ export const Directory: FC<DirectoryPropsType> = ({directory}) => {
             await mutate(apiEndpoints.directoriesList);
         }
     }
+
+    // TODO: check edit method
 
     return (
         <div className={'flex flex-row items-center justify-between p-2'}>

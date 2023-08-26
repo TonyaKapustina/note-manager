@@ -1,11 +1,12 @@
-import React, {FC, useState} from "react";
+import React, {FC, useMemo, useState} from "react";
 import ReactDOM from "react-dom";
 import useSWR from "swr";
 import {apiEndpoints} from "../../api/apiEndpoints";
 import {useRouter} from "next/router";
-import {isNoticeNameNotUnique, isNoticeTitleNotUnique} from "../../utils/notice";
+import {isNoticeTitleNotUnique} from "../../utils/notice";
 import {NoticeType} from "../../interfaces/notice";
-import {InputField} from "../directory/inputField";
+import {InputField} from "../general/inputField";
+import CreatableSelect from "react-select/creatable";
 
 type NoteModalPropsType = {
     setShowModal: (boolean) => void,
@@ -37,8 +38,16 @@ const NoticeModal: FC<NoteModalPropsType> = ({
 
     const isTitleNotUnique = isNoticeTitleNotUnique(currentDirectoryNotices, id, noteTitle);
 
+    const allNoticesTags = useMemo(() => {
+        if (noticesData.length) {
+            return noticesData.map(({tags}) => tags).flat(Infinity)
+        }
+    }, [noticesData]);
+
+    //TODO: add submitting on enter an closing on escape
+
     const onInputChangeHandler = (value) => {
-        setNoteTitle(value.trim());
+        setNoteTitle(value);
 
         if (isTitleNotUnique) {
             setHasErrors(false);
@@ -92,9 +101,9 @@ const NoticeModal: FC<NoteModalPropsType> = ({
                                     value={noteTitle}
                                     onChange={onInputChangeHandler}
                                     hasErrors={hasErrors}
-                                    errorText="The note with this name is already taken." />
+                                    errorText="The note with this name is already taken."/>
                             </div>
-                            <div>
+                            <div className="mb-5">
                                 <h3>Description</h3>
                                 <textarea
                                     rows={4}
@@ -105,6 +114,15 @@ const NoticeModal: FC<NoteModalPropsType> = ({
                                     className="px-3 py-3 placeholder-slate-300 text-slate-600 relative bg-white bg-white rounded text-sm border-0 shadow outline-none focus:outline-none focus:ring w-full"
                                     value={noteDescription}
                                     onChange={(event) => setNoteDescription(event.target.value)}
+                                />
+                            </div>
+                            <div className="mb-5">
+                                <h3>Tags</h3>
+                                <CreatableSelect
+                                    isMulti
+                                    options={allNoticesTags}
+                                    onChange={(options) => setNoteTags(options)}
+                                    value={noteTags}
                                 />
                             </div>
                         </div>

@@ -4,6 +4,9 @@ import arrayToTree from "../utils/arrayToTree";
 import useSWR from "swr";
 import {apiEndpoints} from "../api/apiEndpoints";
 import {useRouter} from "next/router";
+import {NoticesGrid} from "../components/notice/NoticesGrid";
+import {InputField} from "../components/general/inputField";
+import {Search} from "../components/general/search";
 
 const Directories = () => {
     const {data: directoriesData, isLoading: isDirectoriesDataLoading} = useSWR(apiEndpoints.directoriesList);
@@ -39,28 +42,25 @@ const Directories = () => {
     }
 
     return (
-        <>
-            <div className="flex flex-column bg-amber-100 min-h-full overflow-y-auto w-1/3 p-2">
+        <div className='dashboard-layout'>
+            <div className="dashboard-directories bg-amber-100 min-h-full overflow-y-auto p-2">
                 {
                     noDirectoryFound ? 'No directories' :
                         <DirectoriesTree directoriesList={directoriesTree}/>
                 }
             </div>
 
+            <div className="dashboard-search">
+                <Search />
+            </div>
             {
                 !!noticesData?.length && (
-                    <div className="flex flex-column bg-amber-100 min-h-full overflow-y-auto w-2/3 ml-10 p-2">
-                        <div className="grid grid-cols-4 gap-4 self-start">
-                            {
-                                currentDirectoryNotices.map((notice, index) => <Notice notice={notice} key={index}
-                                                                                       noticesList={currentDirectoryNotices}/>)
-                            }
-                        </div>
+                    <div className="directories-notices border min-h-full overflow-y-auto p-2">
+                        <NoticesGrid notices={currentDirectoryNotices}/>
                     </div>
                 )
             }
-
-        </>
+        </div>
     )
 }
 

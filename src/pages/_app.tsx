@@ -16,12 +16,12 @@ const MyAppComponent = ({Component, pageProps}: AppProps) => {
             <SnackbarProvider
                 maxSnack={3}
                 anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-            }}>
-                <Layout>
-                    <Component {...pageProps} />
-                </Layout>
+                    vertical: 'top',
+                    horizontal: 'right',
+                }}>
+                    <Layout>
+                        <Component {...pageProps} />
+                    </Layout>
             </SnackbarProvider>
         </SWRConfig>
     )
