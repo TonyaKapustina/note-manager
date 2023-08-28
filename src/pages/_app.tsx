@@ -5,6 +5,7 @@ import {AppProps} from "next/app";
 
 import '../styles/global.css'
 import {SnackbarProvider} from "notistack";
+import {AppContextProvider} from "../context/appСontext";
 
 const MyAppComponent = ({Component, pageProps}: AppProps) => {
     return (
@@ -19,9 +20,11 @@ const MyAppComponent = ({Component, pageProps}: AppProps) => {
                     vertical: 'top',
                     horizontal: 'right',
                 }}>
+                <AppContextProvider>
                     <Layout>
                         <Component {...pageProps} />
                     </Layout>
+                </AppContextProvider>
             </SnackbarProvider>
         </SWRConfig>
     )
