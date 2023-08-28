@@ -3,10 +3,13 @@ import {InputField} from "./inputField";
 import useSWR from "swr";
 import {apiEndpoints} from "../../api/apiEndpoints";
 import {Notice} from "../notice/notice";
+import {useAppContext} from "../../context/appСontext";
 
 
 export const Search = () => {
     const {data: noticesData, isLoading: isNoticesDataLoading} = useSWR(apiEndpoints.notices);
+
+    const {isAdvancedSearchMode} = useAppContext();
 
     const [searchString, setSearchString] = useState('');
 
@@ -21,7 +24,18 @@ export const Search = () => {
     const noticesSearchResults = useMemo(() => {
         if (!isNoticesDataLoading && noticesData.length && searchString.trim().length >= 3) {
             const normalizedString = searchString.trim().toLowerCase();
-            return noticesData.filter(({title}) => title.toLowerCase().includes(normalizedString)) || [];
+            return noticesData.filter(({title, tags, description}) => {
+                const searchByTitle = title.toLowerCase().includes(normalizedString);
+
+                if (!isAdvancedSearchMode) {
+                    return searchByTitle
+                }
+
+                const searchByDescription = description.toLowerCase().includes(normalizedString);
+                const searchByTags = tags.some(({label}) => label.toLowerCase().includes(normalizedString));
+
+                return searchByTitle || searchByDescription || searchByTags;
+            }) || [];
         }
     }, [isNoticesDataLoading, noticesData, searchString]);
 
@@ -40,7 +54,9 @@ export const Search = () => {
                     value={searchString}
                     onChange={onSearchChangeHandler}
                 />
-                <button className='flex-shrink-0 rounded-md p-2 ml-5 bg-blue-400' onClick={onClearSearchClickHandler}>Clear search</button>
+                <button className='flex-shrink-0 rounded-md p-2 ml-5 bg-blue-400'
+                        onClick={onClearSearchClickHandler}>Clear search
+                </button>
             </div>
             {
                 isActive && (
@@ -50,7 +66,8 @@ export const Search = () => {
                         {
                             !!noticesSearchResults?.length && (
                                 <div className="grid grid-cols-5 gap-4 self-start">
-                                    {noticesSearchResults.map((notice, index) => <Notice notice={notice} key={index} isSearchMode={true} />)}
+                                    {noticesSearchResults.map((notice, index) => <Notice notice={notice} key={index}
+                                                                                         isSearchMode={true}/>)}
                                 </div>
                             )
                         }

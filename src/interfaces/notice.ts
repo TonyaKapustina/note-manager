@@ -1,9 +1,14 @@
+export type NoticeTagType = {
+    value: string,
+    label: string,
+}
+
 export type NoticeType = {
     id: number,
     title: string,
     description: string,
     position?: number,
-    tags?: string[]
+    tags?: NoticeTagType[]
 }
 
 export enum NoticeSizeEnum {

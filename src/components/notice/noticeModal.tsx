@@ -20,8 +20,8 @@ const NoticeModal: FC<NoteModalPropsType> = ({
                                                  onSave,
                                              }) => {
     const {
-        title = "New note",
-        description = "Text...",
+        title = '',
+        description = '',
         tags = [],
         id,
         ...rest
@@ -98,6 +98,7 @@ const NoticeModal: FC<NoteModalPropsType> = ({
                                 <h3>Title</h3>
                                 <InputField
                                     name="noteName"
+                                    placeholder="Note title"
                                     value={noteTitle}
                                     onChange={onInputChangeHandler}
                                     hasErrors={hasErrors}
