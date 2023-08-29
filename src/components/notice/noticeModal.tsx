@@ -40,7 +40,10 @@ const NoticeModal: FC<NoteModalPropsType> = ({
 
     const allNoticesTags = useMemo(() => {
         if (noticesData.length) {
-            return noticesData.map(({tags}) => tags).flat(Infinity)
+            const allTags = noticesData.map(({tags}) => tags).flat(Infinity)
+
+            return [...new Map(allTags.map(item =>
+                [item['label'], item])).values()];
         }
     }, [noticesData]);
 
@@ -73,6 +76,8 @@ const NoticeModal: FC<NoteModalPropsType> = ({
         onSave(note);
         setShowModal(false);
     }
+
+    // TODO: wrap in form tag
 
     const modalContent = (
         <>
