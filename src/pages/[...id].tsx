@@ -1,11 +1,10 @@
 import React, {useEffect, useMemo, useState} from "react";
-import {DirectoriesTree, Notice} from "../components";
+import {DirectoriesTree} from "../components";
 import arrayToTree from "../utils/arrayToTree";
 import useSWR from "swr";
 import {apiEndpoints} from "../api/apiEndpoints";
 import {useRouter} from "next/router";
 import {NoticesGrid} from "../components/notice/NoticesGrid";
-import {InputField} from "../components/general/inputField";
 import {Search} from "../components/general/search";
 
 const Directories = () => {
@@ -51,7 +50,7 @@ const Directories = () => {
             </div>
 
             <div className="dashboard-search">
-                <Search />
+                <Search/>
             </div>
             {
                 !!noticesData?.length && (

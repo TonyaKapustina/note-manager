@@ -10,6 +10,10 @@ interface IDirectoriesList {
 export const DirectoriesTree: FC<IDirectoriesList> = ({directoriesList = []}) => {
     const {query: {id = []}} = useRouter();
 
+    if (!directoriesList.length) {
+        return;
+    }
+
     return (
         <ul className="w-full">
             {

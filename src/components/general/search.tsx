@@ -1,9 +1,10 @@
-import React, { useMemo, useState} from "react";
+import React, {FC, useEffect, useMemo, useState} from "react";
 import useSWR from "swr";
 import {apiEndpoints} from "../../api/apiEndpoints";
 import {useAppContext} from "../../context/appСontext";
 import Select from 'react-select';
 import {formatStringToCamelCase} from "../../utils/formatStringToCamelCase";
+import {useRouter} from "next/router";
 
 enum searchOptionTypeEnum {
     TITLE = 'title',
@@ -11,22 +12,24 @@ enum searchOptionTypeEnum {
     TAG = 'tag'
 }
 
-export const Search = () => {
+type SearchPropsType = {
+    searchQuery: string
+}
+
+export const Search: FC<SearchPropsType> = () => {
     const {data: noticesData, isLoading: isNoticesDataLoading} = useSWR(apiEndpoints.notices);
+    const {query: {search: searchQuery}, push, isReady, pathname} = useRouter();
+
 
     const {isAdvancedSearchMode} = useAppContext();
 
     const [searchString, setSearchString] = useState('');
 
-    const isActive = useMemo(() => {
-        return searchString.trim().length >= 3
-    }, [searchString]);
-
-    const onSearchChangeHandler = (value) => {
-        setSearchString(value);
-    }
-
-    // TODO: add search type
+    useEffect(() => {
+        if (isReady && searchQuery) {
+            setSearchString(decodeURI(searchQuery));
+        }
+    }, [isReady, searchQuery]);
 
     const noticesSearchOptions = useMemo(() => {
         const normalizedString = searchString.trim().toLowerCase();
@@ -45,7 +48,7 @@ export const Search = () => {
                     mySet.set(
                         `${formatStringToCamelCase(title)}-title`, {
                             label: title,
-                            value: formatStringToCamelCase(title),
+                            value: `${formatStringToCamelCase(title)}-title`,
                             type: searchOptionTypeEnum.TITLE
                         }
                     );
@@ -56,7 +59,7 @@ export const Search = () => {
                     if (isDescriptionIncluded) {
                         const indexOfDescriptionString = description.toLowerCase().indexOf(normalizedString);
                         const descriptionOptionLabel = indexOfDescriptionString === 0 ? description : `...${description.slice(indexOfDescriptionString, description.length)}`;
-                        const descriptionOptionValue = formatStringToCamelCase(descriptionOptionLabel.slice(0, 20));
+                        const descriptionOptionValue = `${formatStringToCamelCase(descriptionOptionLabel.slice(0, 20))}-description`;
 
                         mySet.set(
                             descriptionOptionValue, {
@@ -72,7 +75,7 @@ export const Search = () => {
                             mySet.set(
                                 `${formatStringToCamelCase(label)}-tag`, {
                                     label,
-                                    value: formatStringToCamelCase(label),
+                                    value: `${formatStringToCamelCase(label)}-tag`,
                                     type: searchOptionTypeEnum.TAG
                                 }
                             )
@@ -85,12 +88,18 @@ export const Search = () => {
         }
     }, [isAdvancedSearchMode, isNoticesDataLoading, noticesData, searchString]);
 
-    const onClearSearchClickHandler = () => {
-        setSearchString(null);
+    const onSearchOptionLabelClick = (value: string) => {
+        push({
+            pathname: '/results',
+            query: {search: encodeURI(value)}
+        })
     }
 
-    const formatOptionLabel = ({ label, type }) => (
-        <div className='flex'>
+    const searchOptionLabel = ({label, type}) => (
+        <div
+            className='flex'
+            onClick={() => onSearchOptionLabelClick(label)}
+        >
             <div className='truncate text-ellipsis'>{label}</div>
             <div className='italic text-stone-700 text-xs ml-auto pl-5'>
                 ({type})
@@ -98,36 +107,24 @@ export const Search = () => {
         </div>
     );
 
+    const onInputChangeHandler = (value) => {
+        setSearchString(value)
+    }
+
+    console.log(noticesSearchOptions);
+
     return (
-        <form>
-            <div className='flex flex-row'>
-                <div className="w-[100%]">
-                    <Select
-                        inputId="aria-example-input"
-                        name="aria-live-color"
-                        options={noticesSearchOptions || []}
-                        inputValue={searchString}
-                        onInputChange={(value) => setSearchString(value)}
-                        formatOptionLabel={formatOptionLabel}
-                    />
-                </div>
+        <form className='flex flex-row w-[100%]'>
+            <div className="w-[100%]">
+                <Select
+                    inputId="aria-example-input"
+                    name="aria-live-color"
+                    options={noticesSearchOptions || []}
+                    inputValue={searchString}
+                    onInputChange={onInputChangeHandler}
+                    formatOptionLabel={searchOptionLabel}
+                />
             </div>
-            {/*{*/}
-            {/*    isActive && (*/}
-            {/*        <div*/}
-            {/*            className='border drop-shadow-xl bg-white rounded-md p-5 relative z-10 mt-3.5'>*/}
-            {/*            /!*<h2 className='font-bold p-2'>{searchResultsTitle}</h2>*!/*/}
-            {/*            {*/}
-            {/*                !!noticesSearchResults?.length && (*/}
-            {/*                    <div className="grid grid-cols-5 gap-4 self-start">*/}
-            {/*                        {noticesSearchResults.map((notice, index) => <Notice notice={notice} key={index}*/}
-            {/*                                                                             isSearchMode={true}/>)}*/}
-            {/*                    </div>*/}
-            {/*                )*/}
-            {/*            }*/}
-            {/*        </div>*/}
-            {/*    )*/}
-            {/*}*/}
         </form>
     )
 }

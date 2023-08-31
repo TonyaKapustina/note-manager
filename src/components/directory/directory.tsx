@@ -16,7 +16,7 @@ type DirectoryPropsType = {
 export const Directory: FC<DirectoryPropsType> = ({directory}) => {
     const {query: {id}} = useRouter();
     const {mutate} = useSWRConfig()
-    const {trigger} = useSWRMutation(apiEndpoints.directory(directory.id), editDirectory);
+    const {trigger} = useSWRMutation(apiEndpoints.directoriesList, editDirectory);
 
     const isDirectoryOpen = id?.includes(directory?.id?.toString());
     const [isEditing, setIsEditing] = useState(false);
@@ -30,8 +30,7 @@ export const Directory: FC<DirectoryPropsType> = ({directory}) => {
                 await trigger({
                     name: directoryName,
                     id: directory.id,
-                    parentId:
-                    directory.parentId
+                    parentId: directory.parentId
                 });
                 await mutate(apiEndpoints.directoriesList);
             }

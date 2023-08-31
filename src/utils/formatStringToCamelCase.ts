@@ -6,6 +6,6 @@ export const  formatStringToCamelCase = (string = "") => {
     const regex = /\s+(\w)?/gi;
 
     return string.toLowerCase().replace(regex, function(match, letter) {
-        return letter.toUpperCase();
+        return letter?.toUpperCase();
     });
 }

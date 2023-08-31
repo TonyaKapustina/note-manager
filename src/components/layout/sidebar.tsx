@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, {useState} from "react";
 import {useRouter} from "next/router";
 import {addDirectory, addNotice, deleteDirectory, deleteNotice} from "../../api/apiActions";
@@ -7,12 +6,16 @@ import {apiEndpoints} from "../../api/apiEndpoints";
 import useSWRMutation from "swr/mutation";
 import {NoticeType} from "../../interfaces/notice";
 import NoticeModal from "../notice/noticeModal";
-import {useSWRConfig} from "swr";
+import useSWR, {useSWRConfig} from "swr";
+import {enqueueSnackbar} from "notistack";
 
 const Sidebar = () => {
-    const {query: {id: queryId = [], noticeId}, push} = useRouter();
+    const {query: {id: queryId = [], noticeId}, push, pathname} = useRouter();
 
     const {mutate} = useSWRConfig();
+    const {data: directoriesData} = useSWR(apiEndpoints.directoriesList);
+    const {data: noticesData} = useSWR(apiEndpoints.notices);
+
     const {trigger: triggerAddDirectory} = useSWRMutation(apiEndpoints.directoriesList(), addDirectory);
     const {trigger: triggerDeleteDirectory} = useSWRMutation(apiEndpoints.directoriesList(), deleteDirectory);
     const {trigger: triggerAddNotice} = useSWRMutation<NoticeType>(apiEndpoints.notices(), addNotice);
@@ -27,9 +30,17 @@ const Sidebar = () => {
     };
 
     const onRemoveDirectoryClickHandler = async () => {
-        const idsToDelete = queryId.splice(1, queryId.length);
-        const promises = idsToDelete.map(id => triggerDeleteDirectory({id}));
-        await Promise.allSettled(promises);
+        const directoryIdToDelete = Number(queryId?.at(queryId.length - 1));
+        const directoryToDelete = directoriesData.find(({id}) => id === directoryIdToDelete);
+        const hasDirectoryNotes = noticesData.find(({directoryId}) => directoryIdToDelete === directoryId);
+
+        if (directoryToDelete?.children.length && hasDirectoryNotes) {
+            enqueueSnackbar("The directory has content inside. Only empty directories can be removed.", {
+                variant: 'error',
+                autoHideDuration: 2000
+            });
+            return;
+        }
     }
 
     const onRemoveNoticeClickHandler = async () => {

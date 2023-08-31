@@ -1,6 +1,3 @@
-// @ts-nocheck
-import {NoticeType} from "../interfaces/notice";
-
 export const addDirectory = async (url, {arg}: { parentId: number, name: string }) => {
     await fetch(url, {
         method: 'POST',
@@ -12,7 +9,7 @@ export const addDirectory = async (url, {arg}: { parentId: number, name: string 
 }
 
 export const deleteDirectory = async (url, {arg}: { id: number[] }) => {
-    await fetch(url, {
+    return await fetch(`${url}/${arg.id}`, {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json; charset=UTF-8'
