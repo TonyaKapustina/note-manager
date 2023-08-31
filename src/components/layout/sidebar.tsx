@@ -6,20 +6,19 @@ import {apiEndpoints} from "../../api/apiEndpoints";
 import useSWRMutation from "swr/mutation";
 import {NoticeType} from "../../interfaces/notice";
 import NoticeModal from "../notice/noticeModal";
-import useSWR, {useSWRConfig} from "swr";
+import useSWR from "swr";
 import {enqueueSnackbar} from "notistack";
 
 const Sidebar = () => {
-    const {query: {id: queryId = [], noticeId}, push, pathname} = useRouter();
+    const {query: {id: queryId = [], noticeId}, push} = useRouter();
 
-    const {mutate} = useSWRConfig();
     const {data: directoriesData} = useSWR(apiEndpoints.directoriesList);
     const {data: noticesData} = useSWR(apiEndpoints.notices);
 
     const {trigger: triggerAddDirectory} = useSWRMutation(apiEndpoints.directoriesList(), addDirectory);
     const {trigger: triggerDeleteDirectory} = useSWRMutation(apiEndpoints.directoriesList(), deleteDirectory);
     const {trigger: triggerAddNotice} = useSWRMutation<NoticeType>(apiEndpoints.notices(), addNotice);
-    const {trigger: triggerDeleteNotice} = useSWRMutation<NoticeType>(apiEndpoints.notice(Number(noticeId)), deleteNotice);
+    const {trigger: triggerDeleteNotice} = useSWRMutation<NoticeType>(apiEndpoints.notices(), deleteNotice);
 
     const [showNoticeModal, setShowNoticeModal] = useState(false);
 
@@ -34,21 +33,31 @@ const Sidebar = () => {
         const directoryToDelete = directoriesData.find(({id}) => id === directoryIdToDelete);
         const hasDirectoryNotes = noticesData.find(({directoryId}) => directoryIdToDelete === directoryId);
 
-        if (directoryToDelete?.children.length && hasDirectoryNotes) {
-            enqueueSnackbar("The directory has content inside. Only empty directories can be removed.", {
-                variant: 'error',
-                autoHideDuration: 2000
+        if (directoryIdToDelete === DEFAULT_DIRECTORY_ID) {
+            enqueueSnackbar("You can't remove root directory", {
+                variant: 'error'
             });
             return;
         }
+
+        if (directoryToDelete?.children.length && hasDirectoryNotes) {
+            enqueueSnackbar("The directory has content inside. Only empty directories can be removed.", {
+                variant: 'error'
+            });
+            return;
+        }
+
+        const pathname = queryId.splice(0, queryId.length - 1).join('/');
+        push(pathname, undefined, {shallow: true});
+
+        await triggerDeleteDirectory({id: directoryIdToDelete});
     }
 
     const onRemoveNoticeClickHandler = async () => {
         await triggerDeleteNotice({id: noticeId});
-        await mutate(apiEndpoints.notices());
 
         const pathname = queryId.join('/');
-        push(pathname, undefined, {shallow: true});
+        await push(pathname, undefined, {shallow: true});
     }
 
     const onSaveClickHandler = async (notice) => {

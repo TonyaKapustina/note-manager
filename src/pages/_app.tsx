@@ -17,6 +17,8 @@ const MyAppComponent = ({Component, pageProps}: AppProps) => {
         >
             <SnackbarProvider
                 maxSnack={3}
+                preventDuplicate={true}
+                autoHideDuration={2000}
                 anchorOrigin={{
                     vertical: 'top',
                     horizontal: 'right',

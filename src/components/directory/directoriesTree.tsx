@@ -1,10 +1,10 @@
 import {Directory} from "./directory";
 import React, {FC} from "react";
-import {directoryType} from "../../interfaces/directories";
+import {DirectoryType} from "../../interfaces/directories";
 import {useRouter} from "next/router";
 
 interface IDirectoriesList {
-    directoriesList: directoryType[]
+    directoriesList: DirectoryType[]
 }
 
 export const DirectoriesTree: FC<IDirectoriesList> = ({directoriesList = []}) => {

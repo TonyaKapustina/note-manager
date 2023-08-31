@@ -1,63 +1,76 @@
-import React, {FC, useState} from "react";
+import React, {FC, useCallback, useMemo, useState} from "react";
 
 import {useRouter} from "next/router";
 import Link from "next/link";
-import {directoryType} from "../../interfaces/directories";
+import {DirectoryType} from "../../interfaces/directories";
 import {InputField} from "../general/inputField";
 import useSWRMutation from "swr/mutation";
 import {apiEndpoints} from "../../api/apiEndpoints";
 import {editDirectory} from "../../api/apiActions";
-import {useSWRConfig} from "swr";
+import {isDirectoryNameDuplicated} from "../../utils/directory";
+import useSWR from "swr";
+import {enqueueSnackbar} from "notistack";
 
 type DirectoryPropsType = {
-    directory: directoryType
+    directory: DirectoryType
 }
 
 export const Directory: FC<DirectoryPropsType> = ({directory}) => {
     const {query: {id}} = useRouter();
-    const {mutate} = useSWRConfig()
+
+    const {data: directoriesData} = useSWR(apiEndpoints.directoriesList);
     const {trigger} = useSWRMutation(apiEndpoints.directoriesList, editDirectory);
 
     const isDirectoryOpen = id?.includes(directory?.id?.toString());
     const [isEditing, setIsEditing] = useState(false);
     const [directoryName, setDirectoryName] = useState(directory.name);
 
+    const onDirectoryNameEditing = useCallback(async (newName) => {
+        const normalizedNewName = newName.trim();
+
+        setIsEditing(false);
+
+        if (normalizedNewName === '') {
+            enqueueSnackbar("You can't save empty directory name", {
+                variant: 'error'
+            });
+            setDirectoryName(directory.name);
+            return;
+        }
+
+        if (normalizedNewName === directory.name) {
+            return;
+        }
+
+        if (isDirectoryNameDuplicated(directoriesData, directory.id, newName)) {
+            enqueueSnackbar("Directory with same name has been already created", {
+                variant: 'error'
+            });
+            setDirectoryName(directory.name);
+            return;
+        }
+
+        setDirectoryName(normalizedNewName);
+        setIsEditing(false);
+        await trigger({
+            ...directory,
+            name: normalizedNewName,
+        });
+
+    }, [directoriesData, directory, directoryName, trigger]);
+
     const onEditFieldKeyDownHandler = async (event) => {
-        if (event.key === "Enter" || event.key === "Escape") {
-            event.target.blur();
+        const {key, target} = event;
+        if (key === "Enter" || key === "Escape") {
+            target.blur();
 
-            if (event.target.value.trim() !== directoryName || event.target.value.trim() !== "") {
-                await trigger({
-                    name: directoryName,
-                    id: directory.id,
-                    parentId: directory.parentId
-                });
-                await mutate(apiEndpoints.directoriesList);
-            }
-        }
-    }
-// TODO: add validation on duplicated names
-    const onEditFieldBlurHandler = async (event) => {
-        const {target: {value}} = event;
-        if (value.trim() === "" || value.trim() === directoryName) {
-            setDirectoryName(directoryName);
-            setIsEditing(false);
-        } else {
-            setDirectoryName(value);
-            setIsEditing(false);
-            await trigger({
-                    name: directoryName,
-                    id: directory.id,
-                    parentId:
-                    directory.parentId
-                }
-            )
-
-            await mutate(apiEndpoints.directoriesList);
+            await onDirectoryNameEditing(target.value);
         }
     }
 
-    // TODO: check edit method
+    const onEditFieldBlurHandler = async ({target}) => {
+        await onDirectoryNameEditing(target.value);
+    }
 
     return (
         <div className={'flex flex-row items-center justify-between p-2'}>

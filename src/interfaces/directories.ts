@@ -1,7 +1,7 @@
-export type directoryType = {
+export type DirectoryType = {
     id: number,
     name: string,
-    children: directoryType[],
+    children: DirectoryType[],
     path: string[],
     parentId?: number
 }

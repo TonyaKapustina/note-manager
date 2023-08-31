@@ -34,7 +34,7 @@ export const Search: FC<SearchPropsType> = () => {
     const noticesSearchOptions = useMemo(() => {
         const normalizedString = searchString.trim().toLowerCase();
 
-        if (!isNoticesDataLoading && noticesData.length && normalizedString.length >= 3) {
+        if (!isNoticesDataLoading && noticesData.length && normalizedString.length >= 1) {
             const mySet = new Map();
 
             noticesData.map(({title, tags, description}, index) => {
@@ -110,8 +110,6 @@ export const Search: FC<SearchPropsType> = () => {
     const onInputChangeHandler = (value) => {
         setSearchString(value)
     }
-
-    console.log(noticesSearchOptions);
 
     return (
         <form className='flex flex-row w-[100%]'>
