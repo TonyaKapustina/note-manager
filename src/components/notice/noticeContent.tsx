@@ -41,7 +41,7 @@ export const NoticeContent: FC<NoticeContentPropsType> = ({
 
     useEffect(() => {
         if (isTitleDuplicated) {
-            enqueueSnackbar("The note with this name is already taken.", {variant: 'error', autoHideDuration: 2000})
+            enqueueSnackbar("The note with this name is already taken.", {variant: 'error'})
         }
     }, [isTitleDuplicated]);
 

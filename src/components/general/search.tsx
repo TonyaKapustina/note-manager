@@ -18,23 +18,14 @@ type SearchPropsType = {
 
 export const Search: FC<SearchPropsType> = () => {
     const {data: noticesData, isLoading: isNoticesDataLoading} = useSWR(apiEndpoints.notices);
-    const {query: {search: searchQuery}, push, isReady, pathname} = useRouter();
-
+    const {query: {search: searchQuery}, push, isReady} = useRouter();
 
     const {isAdvancedSearchMode} = useAppContext();
-
-    const [searchString, setSearchString] = useState('');
-
-    useEffect(() => {
-        if (isReady && searchQuery) {
-            setSearchString(decodeURI(searchQuery));
-        }
-    }, [isReady, searchQuery]);
+    const [searchValue, setSearchValue] = useState('');
 
     const noticesSearchOptions = useMemo(() => {
-        const normalizedString = searchString.trim().toLowerCase();
 
-        if (!isNoticesDataLoading && noticesData.length && normalizedString.length >= 1) {
+        if (!isNoticesDataLoading && noticesData.length) {
             const mySet = new Map();
 
             noticesData.map(({title, tags, description}, index) => {
@@ -42,84 +33,78 @@ export const Search: FC<SearchPropsType> = () => {
                     return;
                 }
 
-                const isTitleIncluded = title.toLowerCase().includes(normalizedString);
+                mySet.set(
+                    `${formatStringToCamelCase(title)}-title`, {
+                        label: title,
+                        value: `${formatStringToCamelCase(title)}-title`,
+                        type: searchOptionTypeEnum.TITLE
+                    }
+                );
 
-                if (isTitleIncluded) {
-                    mySet.set(
-                        `${formatStringToCamelCase(title)}-title`, {
-                            label: title,
-                            value: `${formatStringToCamelCase(title)}-title`,
-                            type: searchOptionTypeEnum.TITLE
-                        }
-                    );
-                }
                 if (isAdvancedSearchMode) {
-                    const isDescriptionIncluded = description.toLowerCase().includes(normalizedString);
-
-                    if (isDescriptionIncluded) {
-                        const indexOfDescriptionString = description.toLowerCase().indexOf(normalizedString);
-                        const descriptionOptionLabel = indexOfDescriptionString === 0 ? description : `...${description.slice(indexOfDescriptionString, description.length)}`;
-                        const descriptionOptionValue = `${formatStringToCamelCase(descriptionOptionLabel.slice(0, 20))}-description`;
-
+                    const descriptionOptionValue = `${formatStringToCamelCase(description.slice(0, 20))}-description`;
+                    if (description.length >= 2) {
                         mySet.set(
                             descriptionOptionValue, {
-                                label: descriptionOptionLabel,
+                                label: description,
                                 value: descriptionOptionValue,
                                 type: searchOptionTypeEnum.DESCRIPTION
                             }
                         );
                     }
-
-                    tags.map(({label}) => {
-                        return label.toLowerCase().includes(normalizedString) && (
-                            mySet.set(
-                                `${formatStringToCamelCase(label)}-tag`, {
-                                    label,
-                                    value: `${formatStringToCamelCase(label)}-tag`,
-                                    type: searchOptionTypeEnum.TAG
-                                }
-                            )
+                    tags.map(({label}) =>
+                        mySet.set(
+                            `${formatStringToCamelCase(label)}-tag`, {
+                                label,
+                                value: `${formatStringToCamelCase(label)}-tag`,
+                                type: searchOptionTypeEnum.TAG
+                            }
                         )
-                    })
+                    )
                 }
             });
 
             return [...mySet.values()];
         }
-    }, [isAdvancedSearchMode, isNoticesDataLoading, noticesData, searchString]);
+    }, [isAdvancedSearchMode, isNoticesDataLoading, noticesData]);
 
-    const onSearchOptionLabelClick = (value: string) => {
-        push({
-            pathname: '/results',
-            query: {search: encodeURI(value)}
-        })
-    }
+    useEffect(() => {
+        if (isReady && searchQuery) {
+            setSearchValue(noticesSearchOptions?.find(({label}) => label === decodeURI(searchQuery)));
+        }
+    }, [isReady, noticesSearchOptions, searchQuery]);
 
     const searchOptionLabel = ({label, type}) => (
         <div
             className='flex'
-            onClick={() => onSearchOptionLabelClick(label)}
         >
-            <div className='truncate text-ellipsis'>{label}</div>
-            <div className='italic text-stone-700 text-xs ml-auto pl-5'>
-                ({type})
-            </div>
+            <div className='truncate text-ellipsis'>{label || decodeURI(searchQuery)}</div>
+            {
+                type && (
+                    <div className='italic text-stone-700 text-xs ml-auto pl-5'>
+                        ({type})
+                    </div>
+                )}
         </div>
     );
 
-    const onInputChangeHandler = (value) => {
-        setSearchString(value)
+    const onSelectChange = (e) => {
+        setSearchValue(e);
+        push({
+            pathname: '/results',
+            query: {search: encodeURI(e.label)},
+        }, undefined, {shallow: true})
     }
 
     return (
         <form className='flex flex-row w-[100%]'>
             <div className="w-[100%]">
                 <Select
-                    inputId="aria-example-input"
-                    name="aria-live-color"
+                    inputId="search"
+                    name="search"
                     options={noticesSearchOptions || []}
-                    inputValue={searchString}
-                    onInputChange={onInputChangeHandler}
+                    value={searchValue}
+                    onChange={onSelectChange}
                     formatOptionLabel={searchOptionLabel}
                 />
             </div>
