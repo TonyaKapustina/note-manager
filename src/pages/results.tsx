@@ -1,11 +1,11 @@
 import React, {useMemo} from "react";
-import {Search} from "../components/general/search";
 import Link from "next/link";
 import {useRouter} from "next/router";
 import useSWR from "swr";
 import {apiEndpoints} from "../api/apiEndpoints";
 import {useAppContext} from "../context/appСontext";
-import {Notice} from "../components";
+import {Notice, Search} from "../components";
+import {DEFAULT_DIRECTORY_ID} from "../utils/constants";
 
 const SearchResults = () => {
     const {query: {search}} = useRouter();
@@ -36,7 +36,7 @@ const SearchResults = () => {
 
     return (
         <div className='flex flex-col grow'>
-            <Link href='/1' className='m-5'>Go to main page</Link>
+            <Link href={`/${DEFAULT_DIRECTORY_ID}`} className='m-5'>Go to main page</Link>
             <Search/>
             <div
                 className='border p-5 mt-3.5'>

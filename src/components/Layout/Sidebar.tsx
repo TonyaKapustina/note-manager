@@ -1,11 +1,11 @@
 import React, {useState} from "react";
 import {useRouter} from "next/router";
 import {addDirectory, addNotice, deleteDirectory, deleteNotice} from "../../api/apiActions";
-import {DEFAULT_DIRECTORY_ID} from "../../utils/constants";
+import {DEFAULT_DIRECTORY_ID, ERROR_MESSAGES_CATALOG} from "../../utils/constants";
 import {apiEndpoints} from "../../api/apiEndpoints";
 import useSWRMutation from "swr/mutation";
 import {NoticeType} from "../../interfaces/notice";
-import NoticeModal from "../notice/noticeModal";
+import NoticeModal from "../Notice/noticeModal";
 import useSWR from "swr";
 import {enqueueSnackbar} from "notistack";
 
@@ -36,14 +36,14 @@ const Sidebar = () => {
         const hasDirectoryNotes = noticesData.find(({directoryId}) => directoryIdToDelete === directoryId);
 
         if (directoryIdToDelete === DEFAULT_DIRECTORY_ID) {
-            enqueueSnackbar("You can't remove root directory", {
+            enqueueSnackbar(ERROR_MESSAGES_CATALOG.DIRECTORY.ROOT_DELETE, {
                 variant: 'error'
             });
             return;
         }
 
         if (directoryToDelete?.children.length && hasDirectoryNotes) {
-            enqueueSnackbar("The directory has content inside. Only empty directories can be removed.", {
+            enqueueSnackbar(ERROR_MESSAGES_CATALOG.DIRECTORY.IS_NOT_EMPTY, {
                 variant: 'error'
             });
             return;

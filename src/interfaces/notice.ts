@@ -7,6 +7,7 @@ export type NoticeType = {
     id: number,
     title: string,
     description: string,
+    directoryId?: number,
     position?: number,
     tags?: NoticeTagType[]
 }

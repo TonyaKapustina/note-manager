@@ -1,5 +1,5 @@
 import React from "react";
-import {ToggleSwitch} from "../general/toggleSwitch";
+import {ToggleSwitch} from "../General/toggleSwitch";
 import {useAppContext} from "../../context/appСontext";
 
 export default function Header() {

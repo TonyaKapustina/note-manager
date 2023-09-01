@@ -3,13 +3,14 @@ import React, {FC, useCallback, useMemo, useState} from "react";
 import {useRouter} from "next/router";
 import Link from "next/link";
 import {DirectoryType} from "../../interfaces/directories";
-import {InputField} from "../general/inputField";
+import {InputField} from "../General/inputField";
 import useSWRMutation from "swr/mutation";
 import {apiEndpoints} from "../../api/apiEndpoints";
 import {editDirectory} from "../../api/apiActions";
 import {isDirectoryNameDuplicated} from "../../utils/directory";
 import useSWR from "swr";
 import {enqueueSnackbar} from "notistack";
+import {ERROR_MESSAGES_CATALOG} from "../../utils/constants";
 
 type DirectoryPropsType = {
     directory: DirectoryType
@@ -31,7 +32,7 @@ export const Directory: FC<DirectoryPropsType> = ({directory}) => {
         setIsEditing(false);
 
         if (normalizedNewName === '') {
-            enqueueSnackbar("You can't save empty directory name", {
+            enqueueSnackbar(ERROR_MESSAGES_CATALOG.DIRECTORY.EMPTY_TITLE, {
                 variant: 'error'
             });
             setDirectoryName(directory.name);
@@ -43,7 +44,7 @@ export const Directory: FC<DirectoryPropsType> = ({directory}) => {
         }
 
         if (isDirectoryNameDuplicated(directoriesData, directory.id, newName)) {
-            enqueueSnackbar("Directory with same name has been already created", {
+            enqueueSnackbar(ERROR_MESSAGES_CATALOG.DIRECTORY.TITLE_HAS_DUPLICATES, {
                 variant: 'error'
             });
             setDirectoryName(directory.name);
@@ -51,13 +52,12 @@ export const Directory: FC<DirectoryPropsType> = ({directory}) => {
         }
 
         setDirectoryName(normalizedNewName);
-        setIsEditing(false);
         await trigger({
             ...directory,
             name: normalizedNewName,
         });
 
-    }, [directoriesData, directory, directoryName, trigger]);
+    }, [directoriesData, directory, trigger]);
 
     const onEditFieldKeyDownHandler = async (event) => {
         const {key, target} = event;

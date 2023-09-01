@@ -1,25 +1,25 @@
-import React, {useEffect, useMemo, useState} from "react";
-import {DirectoriesTree} from "../components";
+import React, {useEffect, useMemo} from "react";
+import {DirectoriesTree, NoticesGrid, Search} from "../components";
 import arrayToTree from "../utils/arrayToTree";
 import useSWR from "swr";
 import {apiEndpoints} from "../api/apiEndpoints";
 import {useRouter} from "next/router";
-import {NoticesGrid} from "../components/notice/NoticesGrid";
-import {Search} from "../components/general/search";
 
 const Directories = () => {
     const {data: directoriesData, isLoading: isDirectoriesDataLoading} = useSWR(apiEndpoints.directoriesList);
     const {data: noticesData, isLoading: isNoticesDataLoading} = useSWR(apiEndpoints.notices);
     const {query: {id: queryId = [], noticeId}, push} = useRouter();
-    const [noDirectoryFound, setNoDirectoryFound] = useState(undefined);
 
     useEffect(() => {
         if (!isDirectoriesDataLoading && !isNoticesDataLoading && directoriesData.length && queryId.length) {
             const idQueryParam = queryId.join('/');
             const isPathExists = directoriesData.some(({path}) => path.join('/') === idQueryParam);
-            setNoDirectoryFound(!isPathExists);
+
+            if (!isPathExists) {
+                push('/404')
+            }
         }
-    }, [isDirectoriesDataLoading, isNoticesDataLoading, directoriesData, queryId]);
+    }, [isDirectoriesDataLoading, isNoticesDataLoading, directoriesData, queryId, push]);
 
     const directoriesTree = useMemo(() => {
         return !isDirectoriesDataLoading && arrayToTree(directoriesData);
@@ -34,7 +34,7 @@ const Directories = () => {
             const url = queryId.join('/');
             push(url, undefined, {shallow: true});
         }
-    }, [currentDirectoryNotices, isNoticesDataLoading, noticeId]);
+    }, [currentDirectoryNotices, isNoticesDataLoading, noticeId, push, queryId]);
 
     if (isDirectoriesDataLoading && isNoticesDataLoading) {
         return <div>Loading...</div>
@@ -43,10 +43,7 @@ const Directories = () => {
     return (
         <div className='dashboard-layout'>
             <div className="dashboard-directories bg-amber-100 min-h-full overflow-y-auto p-2">
-                {
-                    noDirectoryFound ? 'No directories' :
-                        <DirectoriesTree directoriesList={directoriesTree}/>
-                }
+                <DirectoriesTree directoriesList={directoriesTree}/>
             </div>
 
             <div className="dashboard-search">

@@ -12,11 +12,7 @@ enum searchOptionTypeEnum {
     TAG = 'tag'
 }
 
-type SearchPropsType = {
-    searchQuery: string
-}
-
-export const Search: FC<SearchPropsType> = () => {
+export const Search = () => {
     const {data: noticesData, isLoading: isNoticesDataLoading} = useSWR(apiEndpoints.notices);
     const {query: {search: searchQuery}, push, isReady} = useRouter();
 

@@ -5,7 +5,7 @@ import {apiEndpoints} from "../../api/apiEndpoints";
 import {useRouter} from "next/router";
 import {isNoticeTitleNotUnique} from "../../utils/notice";
 import {NoticeType} from "../../interfaces/notice";
-import {InputField} from "../general/inputField";
+import {InputField} from "../General/inputField";
 import CreatableSelect from "react-select/creatable";
 
 type NoteModalPropsType = {

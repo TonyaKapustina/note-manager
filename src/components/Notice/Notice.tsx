@@ -5,7 +5,7 @@ import {NoticeSizeEnum, NoticeType} from "../../interfaces/notice";
 import {apiEndpoints} from "../../api/apiEndpoints";
 import {editNotice} from "../../api/apiActions";
 import {useRouter} from "next/router";
-import {Tooltip} from "../../components/general/tooltip"
+import {Tooltip} from "../General/tooltip"
 import {NoticeDraggableWrapper} from "./draggableWrapper";
 import {NoticeContent} from "./noticeContent";
 

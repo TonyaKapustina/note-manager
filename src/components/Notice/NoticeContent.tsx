@@ -1,5 +1,5 @@
-import React, {FC, Fragment, useEffect, useState} from "react";
-import {InputField} from "../general/inputField";
+import React, {FC, useCallback, useEffect, useState} from "react";
+import {InputField} from "../General/inputField";
 import {isNoticeTitleNotUnique} from "../../utils/notice";
 import useSWR from "swr";
 import {apiEndpoints} from "../../api/apiEndpoints";
@@ -8,6 +8,7 @@ import {enqueueSnackbar} from "notistack";
 import useSWRMutation from "swr/mutation";
 import {editNotice} from "../../api/apiActions";
 import {useRouter} from "next/router";
+import {ERROR_MESSAGES_CATALOG} from "../../utils/constants";
 
 type NoticeContentPropsType = {
     notice: NoticeType,
@@ -35,15 +36,6 @@ export const NoticeContent: FC<NoticeContentPropsType> = ({
 
     const [isEditing, setIsEditing] = useState(false);
     const [isSelected, setIsSelected] = useState(false);
-    const [isTitleDuplicated, setHasTitleDuplicated] = useState(false);
-
-    const isTitleNotUnique = isNoticeTitleNotUnique(noticesData, id, noticeTitle);
-
-    useEffect(() => {
-        if (isTitleDuplicated) {
-            enqueueSnackbar("The note with this name is already taken.", {variant: 'error'})
-        }
-    }, [isTitleDuplicated]);
 
     useEffect(() => {
         if (noticeId) {
@@ -55,38 +47,50 @@ export const NoticeContent: FC<NoticeContentPropsType> = ({
         setIsSelected(false);
     }, [noticeId, id]);
 
-    const onEditFieldKeyDownHandler = async (event) => {
-        if (event.key === "Enter" || event.key === "Escape") {
-            event.target.blur();
-            setIsEditing(false);
+    const onNoticeEditHandler = useCallback(async (newNoticeTitle) => {
+        const normalizedTitle = newNoticeTitle.trim();
 
-            if (isTitleNotUnique) {
-                setHasTitleDuplicated(true);
-                setIsEditing(false);
-                setNoticeTitle(title);
-                return;
-            }
+        setIsEditing(false);
 
-            if (event.target.value.trim() !== title.trim() && event.target.value.trim() !== "") {
-                await trigger({...notice, title: event.target.value.trim()});
-            }
-        }
-    }
-
-    const onEditFieldBlurHandler = async (event) => {
-        if (isTitleNotUnique) {
-            setHasTitleDuplicated(true);
-            setIsEditing(false);
+        if (normalizedTitle === '') {
+            enqueueSnackbar(ERROR_MESSAGES_CATALOG.NOTE.EMPTY_TITLE, {
+                variant: 'error'
+            });
             setNoticeTitle(title);
             return;
         }
 
-        setHasTitleDuplicated(false);
-        setIsEditing(false);
-
-        if (event.target.value.trim() !== title.trim() && event.target.value.trim() !== "") {
-            await trigger({...notice, title: event.target.value.trim()});
+        if (normalizedTitle === title) {
+            return;
         }
+
+        if (isNoticeTitleNotUnique(noticesData, notice, normalizedTitle)) {
+            enqueueSnackbar(ERROR_MESSAGES_CATALOG.NOTE.TITLE_HAS_DUPLICATES, {
+                variant: 'error'
+            });
+            setNoticeTitle(title);
+            return;
+        }
+
+        setNoticeTitle(normalizedTitle);
+        await trigger({
+            ...notice,
+            title: normalizedTitle
+        });
+
+    }, [notice, noticesData, setNoticeTitle, title, trigger]);
+
+    const onEditFieldKeyDownHandler = async (event) => {
+        const {key, target} = event;
+        if (key === "Enter" || key === "Escape") {
+            target.blur();
+
+            await onNoticeEditHandler(target.value);
+        }
+    }
+
+    const onEditFieldBlurHandler = async ({target}) => {
+        await onNoticeEditHandler(target.value);
     }
 
     const onClickHandler = () => {
