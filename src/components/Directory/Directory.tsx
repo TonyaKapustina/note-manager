@@ -1,9 +1,9 @@
-import React, {FC, useCallback, useMemo, useState} from "react";
+import React, {FC, KeyboardEvent, useCallback, useState} from "react";
 
 import {useRouter} from "next/router";
 import Link from "next/link";
 import {DirectoryType} from "../../interfaces/directories";
-import {InputField} from "../General/inputField";
+import {InputField} from "../General";
 import useSWRMutation from "swr/mutation";
 import {apiEndpoints} from "../../api/apiEndpoints";
 import {editDirectory} from "../../api/apiActions";
@@ -19,14 +19,14 @@ type DirectoryPropsType = {
 export const Directory: FC<DirectoryPropsType> = ({directory}) => {
     const {query: {id}} = useRouter();
 
-    const {data: directoriesData} = useSWR(apiEndpoints.directoriesList);
+    const {data: directoriesData} = useSWR<DirectoryType[]>(apiEndpoints.directoriesList);
     const {trigger} = useSWRMutation(apiEndpoints.directoriesList, editDirectory);
 
     const isDirectoryOpen = id?.includes(directory?.id?.toString());
     const [isEditing, setIsEditing] = useState(false);
     const [directoryName, setDirectoryName] = useState(directory.name);
 
-    const onDirectoryNameEditing = useCallback(async (newName) => {
+    const onDirectoryNameEditing = useCallback(async (newName: string) => {
         const normalizedNewName = newName.trim();
 
         setIsEditing(false);
@@ -43,7 +43,7 @@ export const Directory: FC<DirectoryPropsType> = ({directory}) => {
             return;
         }
 
-        if (isDirectoryNameDuplicated(directoriesData, directory.id, newName)) {
+        if (isDirectoryNameDuplicated(directory.id, newName, directoriesData)) {
             enqueueSnackbar(ERROR_MESSAGES_CATALOG.DIRECTORY.TITLE_HAS_DUPLICATES, {
                 variant: 'error'
             });
@@ -59,17 +59,18 @@ export const Directory: FC<DirectoryPropsType> = ({directory}) => {
 
     }, [directoriesData, directory, trigger]);
 
-    const onEditFieldKeyDownHandler = async (event) => {
+    const onEditFieldKeyDownHandler = async (event: React.KeyboardEvent<HTMLInputElement>) => {
         const {key, target} = event;
         if (key === "Enter" || key === "Escape") {
-            target.blur();
+            const inputTarget = target as HTMLInputElement;
+            inputTarget.blur();
 
-            await onDirectoryNameEditing(target.value);
+            await onDirectoryNameEditing(inputTarget.value);
         }
     }
 
-    const onEditFieldBlurHandler = async ({target}) => {
-        await onDirectoryNameEditing(target.value);
+    const onEditFieldBlurHandler = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        await onDirectoryNameEditing(event.target.value);
     }
 
     return (

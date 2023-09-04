@@ -1,5 +1,9 @@
-const arrayToTree = (array = []) => {
-    let map = {}, node, roots = [], i;
+import {DirectoryType} from "../interfaces/directories";
+
+const arrayToTree = (array: DirectoryType[] = []) => {
+    const map = {};
+    const roots = [];
+    let node, i;
     if (!array.length) {
         return []
     } else {
@@ -7,7 +11,6 @@ const arrayToTree = (array = []) => {
             map[array[i].id] = i; // initialize the map
             array[i].children = []; // initialize the children
             array[i].path = [];
-            array[i].childrensId = [];
         }
         for (i = 0; i < array.length; i += 1) {
             node = array[i];

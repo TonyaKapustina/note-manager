@@ -6,11 +6,12 @@ import {apiEndpoints} from "../api/apiEndpoints";
 import {useAppContext} from "../context/appСontext";
 import {Notice, Search} from "../components";
 import {DEFAULT_DIRECTORY_ID} from "../utils/constants";
+import {NoticeType} from "../interfaces/notice";
 
 const SearchResults = () => {
     const {query: {search}} = useRouter();
     const {isAdvancedSearchMode} = useAppContext();
-    const {data: noticesData} = useSWR(apiEndpoints.notices);
+    const {data: noticesData} = useSWR<NoticeType[]>(apiEndpoints.notices);
 
     const noticesSearchResults = useMemo(() => {
         if (noticesData?.length && search) {

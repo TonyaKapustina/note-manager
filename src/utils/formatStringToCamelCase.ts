@@ -1,4 +1,4 @@
-export const  formatStringToCamelCase = (string = "") => {
+export const  formatStringToCamelCase = (string = ""): string => {
     if (!string) {
         return "";
     }

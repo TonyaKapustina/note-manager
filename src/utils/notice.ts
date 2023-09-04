@@ -1,6 +1,6 @@
 import {NoticeType} from "../interfaces/notice";
 
-export const isNoticeTitleNotUnique = (noticesList: NoticeType[], notice: NoticeType, noticeTitle?: string) => {
+export const isNoticeTitleNotUnique = (noticesList: NoticeType[], notice: NoticeType, noticeTitle?: string): boolean => {
     return noticeTitle && noticesList.filter(
         (item) => item.id !== notice.id && item.directoryId === notice.directoryId
     ).some(

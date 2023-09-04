@@ -5,6 +5,7 @@ import {useAppContext} from "../../context/appСontext";
 import Select from 'react-select';
 import {formatStringToCamelCase} from "../../utils/formatStringToCamelCase";
 import {useRouter} from "next/router";
+import {NoticeType} from "../../interfaces/notice";
 
 enum searchOptionTypeEnum {
     TITLE = 'title',
@@ -13,7 +14,7 @@ enum searchOptionTypeEnum {
 }
 
 export const Search = () => {
-    const {data: noticesData, isLoading: isNoticesDataLoading} = useSWR(apiEndpoints.notices);
+    const {data: noticesData, isLoading: isNoticesDataLoading} = useSWR<NoticeType[], boolean>(apiEndpoints.notices);
     const {query: {search: searchQuery}, push, isReady} = useRouter();
 
     const {isAdvancedSearchMode} = useAppContext();

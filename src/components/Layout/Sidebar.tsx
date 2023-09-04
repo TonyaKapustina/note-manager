@@ -8,12 +8,13 @@ import {NoticeType} from "../../interfaces/notice";
 import NoticeModal from "../Notice/noticeModal";
 import useSWR from "swr";
 import {enqueueSnackbar} from "notistack";
+import {DirectoryType} from "../../interfaces/directories";
 
 const Sidebar = () => {
     const {query: {id: queryId = [], noticeId}, push, pathname} = useRouter();
 
-    const {data: directoriesData} = useSWR(apiEndpoints.directoriesList);
-    const {data: noticesData} = useSWR(apiEndpoints.notices);
+    const {data: directoriesData} = useSWR<DirectoryType[]>(apiEndpoints.directoriesList);
+    const {data: noticesData} = useSWR<NoticeType[]>(apiEndpoints.notices);
 
     const {trigger: triggerAddDirectory} = useSWRMutation(apiEndpoints.directoriesList(), addDirectory);
     const {trigger: triggerDeleteDirectory} = useSWRMutation(apiEndpoints.directoriesList(), deleteDirectory);

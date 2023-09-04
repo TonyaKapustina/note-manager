@@ -27,7 +27,7 @@ const NoticeModal: FC<NoteModalPropsType> = ({
         ...rest
     } = notice || {};
     const {query: {id: queryId = []}} = useRouter();
-    const {data: noticesData} = useSWR(apiEndpoints.notices);
+    const {data: noticesData} = useSWR<NoticeType[]>(apiEndpoints.notices);
 
     const [noteTitle, setNoteTitle] = useState(title);
     const [noteDescription, setNoteDescription] = useState(description);

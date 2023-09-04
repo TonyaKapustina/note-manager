@@ -4,10 +4,12 @@ import arrayToTree from "../utils/arrayToTree";
 import useSWR from "swr";
 import {apiEndpoints} from "../api/apiEndpoints";
 import {useRouter} from "next/router";
+import {DirectoryType} from "../interfaces/directories";
+import {NoticeType} from "../interfaces/notice";
 
 const Directories = () => {
-    const {data: directoriesData, isLoading: isDirectoriesDataLoading} = useSWR(apiEndpoints.directoriesList);
-    const {data: noticesData, isLoading: isNoticesDataLoading} = useSWR(apiEndpoints.notices);
+    const {data: directoriesData, isLoading: isDirectoriesDataLoading} = useSWR<DirectoryType[], boolean>(apiEndpoints.directoriesList);
+    const {data: noticesData, isLoading: isNoticesDataLoading} = useSWR<NoticeType[], boolean>(apiEndpoints.notices);
     const {query: {id: queryId = [], noticeId}, push} = useRouter();
 
     useEffect(() => {

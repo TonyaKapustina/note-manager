@@ -31,8 +31,8 @@ export const NoticeContent: FC<NoticeContentPropsType> = ({
 
     const {query: {id: queryId = [], noticeId}, push} = useRouter();
 
-    const {data: noticesData} = useSWR(apiEndpoints.notices);
-    const {trigger} = useSWRMutation<NoticeType>(apiEndpoints.notices, editNotice);
+    const {data: noticesData} = useSWR<NoticeType[]>(apiEndpoints.notices);
+    const {trigger} = useSWRMutation(apiEndpoints.notices, editNotice);
 
     const [isEditing, setIsEditing] = useState(false);
     const [isSelected, setIsSelected] = useState(false);
