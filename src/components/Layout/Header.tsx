@@ -1,9 +1,9 @@
 import React from "react";
-import {ToggleSwitch} from "../General/toggleSwitch";
+import {ToggleSwitch} from "../General";
 import {useAppContext} from "../../context/appСontext";
 
 export default function Header() {
-    const {isAdvancedSearchMode, setIsAdavancedSearchMode} = useAppContext();
+    const {isAdvancedSearchMode, setIsAdvancedSearchMode} = useAppContext();
 
     return (
         <div className="bg-blue-700">
@@ -11,7 +11,7 @@ export default function Header() {
                 Note manager
                 <ToggleSwitch
                     isOn={isAdvancedSearchMode}
-                    handleToggle={() => setIsAdavancedSearchMode(!isAdvancedSearchMode)}/>
+                    handleToggle={() => setIsAdvancedSearchMode(!isAdvancedSearchMode)}/>
             </div>
         </div>
     )

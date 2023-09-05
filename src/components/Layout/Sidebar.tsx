@@ -4,24 +4,26 @@ import {addDirectory, addNotice, deleteDirectory, deleteNotice} from "../../api/
 import {DEFAULT_DIRECTORY_ID, ERROR_MESSAGES_CATALOG} from "../../utils/constants";
 import {apiEndpoints} from "../../api/apiEndpoints";
 import useSWRMutation from "swr/mutation";
-import {NoticeType} from "../../interfaces/notice";
-import NoticeModal from "../Notice/noticeModal";
+import {NoteType} from "../../interfaces/note";
+import {NoteModal} from "../Note";
 import useSWR from "swr";
 import {enqueueSnackbar} from "notistack";
-import {DirectoryType} from "../../interfaces/directories";
+import {buildUrlPathname} from "../../utils/url";
+import {useDirectoryData} from "../../hooks/useDirectoryData";
 
 const Sidebar = () => {
-    const {query: {id: queryId = [], noticeId}, push, pathname} = useRouter();
+    const {query: {id, noticeId}, push, pathname} = useRouter();
+    const queryId = id as string[];
 
-    const {data: directoriesData} = useSWR<DirectoryType[]>(apiEndpoints.directoriesList);
-    const {data: noticesData} = useSWR<NoticeType[]>(apiEndpoints.notices);
+    const {directoriesData} = useDirectoryData();
+    const {data: noticesData} = useSWR<NoteType[]>(apiEndpoints.notices);
 
     const {trigger: triggerAddDirectory} = useSWRMutation(apiEndpoints.directoriesList(), addDirectory);
     const {trigger: triggerDeleteDirectory} = useSWRMutation(apiEndpoints.directoriesList(), deleteDirectory);
-    const {trigger: triggerAddNotice} = useSWRMutation<NoticeType>(apiEndpoints.notices(), addNotice);
-    const {trigger: triggerDeleteNotice} = useSWRMutation<NoticeType>(apiEndpoints.notices(), deleteNotice);
+    const {trigger: triggerAddNotice} = useSWRMutation(apiEndpoints.notices(), addNotice);
+    const {trigger: triggerDeleteNotice} = useSWRMutation(apiEndpoints.notices(), deleteNotice);
 
-    const [showNoticeModal, setShowNoticeModal] = useState(false);
+    const [showNoteModal, setShowNoteModal] = useState(false);
 
     const isResultsPage = pathname === '/results';
 
@@ -33,8 +35,8 @@ const Sidebar = () => {
 
     const onRemoveDirectoryClickHandler = async () => {
         const directoryIdToDelete = Number(queryId?.at(queryId.length - 1));
-        const directoryToDelete = directoriesData.find(({id}) => id === directoryIdToDelete);
-        const hasDirectoryNotes = noticesData.find(({directoryId}) => directoryIdToDelete === directoryId);
+        const directoryToDelete = directoriesData?.find(({id}) => id === directoryIdToDelete);
+        const hasDirectoryNotes = noticesData?.find(({directoryId}) => directoryIdToDelete === directoryId);
 
         if (directoryIdToDelete === DEFAULT_DIRECTORY_ID) {
             enqueueSnackbar(ERROR_MESSAGES_CATALOG.DIRECTORY.ROOT_DELETE, {
@@ -43,6 +45,7 @@ const Sidebar = () => {
             return;
         }
 
+        // @ts-ignore
         if (directoryToDelete?.children.length && hasDirectoryNotes) {
             enqueueSnackbar(ERROR_MESSAGES_CATALOG.DIRECTORY.IS_NOT_EMPTY, {
                 variant: 'error'
@@ -51,19 +54,18 @@ const Sidebar = () => {
         }
 
         const pathname = queryId.splice(0, queryId.length - 1).join('/');
-        push(pathname, undefined, {shallow: true});
+        await push(pathname, undefined, {shallow: true});
 
         await triggerDeleteDirectory({id: directoryIdToDelete});
     }
 
     const onRemoveNoticeClickHandler = async () => {
-        await triggerDeleteNotice({id: noticeId});
+        await triggerDeleteNotice({id: Number(noticeId)});
 
-        const pathname = queryId.join('/');
-        await push(pathname, undefined, {shallow: true});
+        await push(buildUrlPathname(queryId), undefined, {shallow: true});
     }
 
-    const onSaveClickHandler = async (notice) => {
+    const onSaveClickHandler = async (notice: NoteType) => {
         await triggerAddNotice({...notice, directoryId: Number(queryId.slice(-1))})
     }
 
@@ -93,7 +95,7 @@ const Sidebar = () => {
                             </button>
                             <hr className="border-blue-700"/>
                             <button className="flex flex-col items-center add p-2 hover:text-blue-700"
-                                    onClick={() => setShowNoticeModal(true)}>
+                                    onClick={() => setShowNoteModal(true)}>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
                                      stroke="currentColor" className="w-6 h-6">
                                     <path strokeLinecap="round" strokeLinejoin="round"
@@ -118,8 +120,8 @@ const Sidebar = () => {
                 }
             </div>
             {
-                showNoticeModal && (
-                    <NoticeModal setShowModal={setShowNoticeModal} onSave={onSaveClickHandler}/>
+                showNoteModal && (
+                    <NoteModal setShowModal={setShowNoteModal} onSave={onSaveClickHandler}/>
                 )
             }
         </>

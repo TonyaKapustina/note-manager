@@ -1,2 +1,2 @@
-export * from './directoriesTree';
-export * from './directory';
+export * from './DirectoriesTree';
+export * from './Directory';

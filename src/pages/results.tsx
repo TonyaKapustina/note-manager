@@ -4,18 +4,18 @@ import {useRouter} from "next/router";
 import useSWR from "swr";
 import {apiEndpoints} from "../api/apiEndpoints";
 import {useAppContext} from "../context/appСontext";
-import {Notice, Search} from "../components";
+import {Note, Search} from "../components";
 import {DEFAULT_DIRECTORY_ID} from "../utils/constants";
-import {NoticeType} from "../interfaces/notice";
+import {NoteType} from "../interfaces/note";
 
 const SearchResults = () => {
     const {query: {search}} = useRouter();
     const {isAdvancedSearchMode} = useAppContext();
-    const {data: noticesData} = useSWR<NoticeType[]>(apiEndpoints.notices);
+    const {data: noticesData} = useSWR<NoteType[]>(apiEndpoints.notices);
 
     const noticesSearchResults = useMemo(() => {
         if (noticesData?.length && search) {
-            const searchString = decodeURI(search);
+            const searchString = decodeURI(search as string);
             return noticesData.filter(({title, tags, description}) => {
                 const isTitleIncluded = title.toLowerCase().includes(searchString.trim().toLowerCase());
 
@@ -45,8 +45,8 @@ const SearchResults = () => {
                 {
                     !!noticesSearchResults?.length && (
                         <div className="grid grid-cols-5 gap-4 self-start">
-                            {noticesSearchResults.map((notice, index) => <Notice notice={notice} key={index}
-                                                                                 isSearchMode={true}/>)}
+                            {noticesSearchResults.map((notice, index) => <Note notice={notice} key={index}
+                                                                               isSearchMode={true}/>)}
                         </div>
                     )
                 }

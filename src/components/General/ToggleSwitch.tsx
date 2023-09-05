@@ -2,11 +2,10 @@ import React, {FC} from "react";
 
 type ToggleSwitchPropsType = {
     isOn: boolean,
-    handleToggle: (value: boolean) => void;
+    handleToggle: () => void;
 };
 
 export const ToggleSwitch: FC<ToggleSwitchPropsType> = ({isOn, handleToggle}) => {
-
     return (
         <div className='flex flex-row items-center'>
             <label className='mr-5'>Advanced Search Mode</label>
@@ -18,8 +17,7 @@ export const ToggleSwitch: FC<ToggleSwitchPropsType> = ({isOn, handleToggle}) =>
                 onChange={handleToggle}
             />
             <label
-                style={{background: isOn && '#06D6A0'}}
-                className="react-switch-label"
+                className={`react-switch-label ${isOn && 'active'}`}
                 htmlFor="react-switch-new"
             >
                 <span className={`react-switch-button`}/>

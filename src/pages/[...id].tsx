@@ -1,39 +1,31 @@
 import React, {useEffect, useMemo} from "react";
-import {DirectoriesTree, NoticesGrid, Search} from "../components";
+import {DirectoriesTree, NotesGrid, Search} from "../components";
 import arrayToTree from "../utils/arrayToTree";
 import useSWR from "swr";
 import {apiEndpoints} from "../api/apiEndpoints";
 import {useRouter} from "next/router";
-import {DirectoryType} from "../interfaces/directories";
-import {NoticeType} from "../interfaces/notice";
+import {NoteType} from "../interfaces/note";
+import {buildUrlPathname} from "../utils/url";
+import {useDirectoryData} from "../hooks/useDirectoryData";
 
 const Directories = () => {
-    const {data: directoriesData, isLoading: isDirectoriesDataLoading} = useSWR<DirectoryType[], boolean>(apiEndpoints.directoriesList);
-    const {data: noticesData, isLoading: isNoticesDataLoading} = useSWR<NoticeType[], boolean>(apiEndpoints.notices);
+    const {directoriesData, isDirectoriesDataLoading} = useDirectoryData();
+    const {data: noticesData, isLoading: isNoticesDataLoading} = useSWR<NoteType[], boolean>(apiEndpoints.notices);
     const {query: {id: queryId = [], noticeId}, push} = useRouter();
 
-    useEffect(() => {
-        if (!isDirectoriesDataLoading && !isNoticesDataLoading && directoriesData.length && queryId.length) {
-            const idQueryParam = queryId.join('/');
-            const isPathExists = directoriesData.some(({path}) => path.join('/') === idQueryParam);
-
-            if (!isPathExists) {
-                push('/404')
-            }
-        }
-    }, [isDirectoriesDataLoading, isNoticesDataLoading, directoriesData, queryId, push]);
-
     const directoriesTree = useMemo(() => {
-        return !isDirectoriesDataLoading && arrayToTree(directoriesData);
-    }, [isDirectoriesDataLoading, directoriesData]);
+        return arrayToTree(directoriesData);
+    }, [directoriesData]);
 
     const currentDirectoryNotices = useMemo(() => {
-        return !isNoticesDataLoading && noticesData?.filter(({directoryId}) => directoryId === Number(queryId.slice(-1)))
-    }, [isNoticesDataLoading, noticesData, queryId])
+        return noticesData?.filter(({directoryId}) => directoryId === Number(queryId.slice(-1))) || []
+    }, [noticesData, queryId])
 
     useEffect(() => {
+        // @ts-ignore
         if (Boolean(noticeId) && !isNoticesDataLoading && (!currentDirectoryNotices?.length || !currentDirectoryNotices?.some(({id}) => id?.toString().includes(noticeId.toString())))) {
-            const url = queryId.join('/');
+            // @ts-ignore
+            const url = buildUrlPathname(queryId);
             push(url, undefined, {shallow: true});
         }
     }, [currentDirectoryNotices, isNoticesDataLoading, noticeId, push, queryId]);
@@ -54,7 +46,7 @@ const Directories = () => {
             {
                 !!noticesData?.length && (
                     <div className="directories-notices border min-h-full overflow-y-auto p-2">
-                        <NoticesGrid notices={currentDirectoryNotices}/>
+                        <NotesGrid notices={currentDirectoryNotices}/>
                     </div>
                 )
             }

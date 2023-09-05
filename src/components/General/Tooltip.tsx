@@ -19,13 +19,13 @@ export const Tooltip: FC<TooltipPropsType> = ({children, text, isVisible = false
     }, [isVisible]);
 
     useEffect(() => {
-        if (isHover) {
+        if (isHover && tooltipRef?.current) {
             setTooltipHeight(tooltipRef.current.clientHeight);
         }
     }, [isHover]);
 
     const tooltipPosition = useMemo(() => {
-        if (isHover) {
+        if (isHover && tooltipContainerRef?.current) {
             const tooltipContainerProperties = tooltipContainerRef.current.getBoundingClientRect();
             const extraSpace = 10;
 

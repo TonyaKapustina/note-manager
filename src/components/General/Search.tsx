@@ -2,10 +2,10 @@ import React, {FC, useEffect, useMemo, useState} from "react";
 import useSWR from "swr";
 import {apiEndpoints} from "../../api/apiEndpoints";
 import {useAppContext} from "../../context/appСontext";
-import Select from 'react-select';
+import Select, {SingleValue} from 'react-select';
 import {formatStringToCamelCase} from "../../utils/formatStringToCamelCase";
 import {useRouter} from "next/router";
-import {NoticeType} from "../../interfaces/notice";
+import {NoteType} from "../../interfaces/note";
 
 enum searchOptionTypeEnum {
     TITLE = 'title',
@@ -13,16 +13,23 @@ enum searchOptionTypeEnum {
     TAG = 'tag'
 }
 
+interface OptionType {
+    value: string;
+    label: string;
+    type: searchOptionTypeEnum;
+}
+
 export const Search = () => {
-    const {data: noticesData, isLoading: isNoticesDataLoading} = useSWR<NoticeType[], boolean>(apiEndpoints.notices);
-    const {query: {search: searchQuery}, push, isReady} = useRouter();
+    const {data: noticesData, isLoading: isNoticesDataLoading} = useSWR<NoteType[], boolean>(apiEndpoints.notices);
+    const {query: {search}, push, isReady} = useRouter();
+    const searchQuery = search as string;
 
     const {isAdvancedSearchMode} = useAppContext();
-    const [searchValue, setSearchValue] = useState('');
+    const [searchValue, setSearchValue] = useState<OptionType | null>(null);
 
     const noticesSearchOptions = useMemo(() => {
 
-        if (!isNoticesDataLoading && noticesData.length) {
+        if (!isNoticesDataLoading && noticesData?.length) {
             const mySet = new Map();
 
             noticesData.map(({title, tags, description}, index) => {
@@ -61,7 +68,7 @@ export const Search = () => {
                 }
             });
 
-            return [...mySet.values()];
+            return Array.from(mySet.values());
         }
     }, [isAdvancedSearchMode, isNoticesDataLoading, noticesData]);
 
@@ -71,7 +78,7 @@ export const Search = () => {
         }
     }, [isReady, noticesSearchOptions, searchQuery]);
 
-    const searchOptionLabel = ({label, type}) => (
+    const searchOptionLabel = ({label, type}: { label: string, type: searchOptionTypeEnum }): React.ReactNode => (
         <div
             className='flex'
         >
@@ -85,12 +92,14 @@ export const Search = () => {
         </div>
     );
 
-    const onSelectChange = (e) => {
-        setSearchValue(e);
-        push({
-            pathname: '/results',
-            query: {search: encodeURI(e.label)},
-        }, undefined, {shallow: true})
+    const onSelectChange = (option: SingleValue<OptionType>): void => {
+        if (option) {
+            setSearchValue(option);
+            push({
+                pathname: '/results',
+                query: {search: encodeURI(option.label)},
+            }, undefined, {shallow: true})
+        }
     }
 
     return (

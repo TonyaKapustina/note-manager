@@ -1,4 +1,4 @@
-import React, {FC, KeyboardEvent, useCallback, useState} from "react";
+import React, {FC, useCallback, useState} from "react";
 
 import {useRouter} from "next/router";
 import Link from "next/link";
@@ -8,9 +8,9 @@ import useSWRMutation from "swr/mutation";
 import {apiEndpoints} from "../../api/apiEndpoints";
 import {editDirectory} from "../../api/apiActions";
 import {isDirectoryNameDuplicated} from "../../utils/directory";
-import useSWR from "swr";
 import {enqueueSnackbar} from "notistack";
 import {ERROR_MESSAGES_CATALOG} from "../../utils/constants";
+import {useDirectoryData} from "../../hooks/useDirectoryData";
 
 type DirectoryPropsType = {
     directory: DirectoryType
@@ -19,12 +19,12 @@ type DirectoryPropsType = {
 export const Directory: FC<DirectoryPropsType> = ({directory}) => {
     const {query: {id}} = useRouter();
 
-    const {data: directoriesData} = useSWR<DirectoryType[]>(apiEndpoints.directoriesList);
+    const {directoriesData} = useDirectoryData();
     const {trigger} = useSWRMutation(apiEndpoints.directoriesList, editDirectory);
 
     const isDirectoryOpen = id?.includes(directory?.id?.toString());
     const [isEditing, setIsEditing] = useState(false);
-    const [directoryName, setDirectoryName] = useState(directory.name);
+    const [directoryName, setDirectoryName] = useState<string>(directory.name);
 
     const onDirectoryNameEditing = useCallback(async (newName: string) => {
         const normalizedNewName = newName.trim();
@@ -59,20 +59,6 @@ export const Directory: FC<DirectoryPropsType> = ({directory}) => {
 
     }, [directoriesData, directory, trigger]);
 
-    const onEditFieldKeyDownHandler = async (event: React.KeyboardEvent<HTMLInputElement>) => {
-        const {key, target} = event;
-        if (key === "Enter" || key === "Escape") {
-            const inputTarget = target as HTMLInputElement;
-            inputTarget.blur();
-
-            await onDirectoryNameEditing(inputTarget.value);
-        }
-    }
-
-    const onEditFieldBlurHandler = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        await onDirectoryNameEditing(event.target.value);
-    }
-
     return (
         <div className={'flex flex-row items-center justify-between p-2'}>
             {
@@ -81,10 +67,10 @@ export const Directory: FC<DirectoryPropsType> = ({directory}) => {
                         name="directoryName"
                         value={directoryName}
                         onChange={setDirectoryName}
-                        onBlur={onEditFieldBlurHandler}
-                        onKeyDown={onEditFieldKeyDownHandler}
+                        editEntityRequest={onDirectoryNameEditing}
                     />
                     :
+                    // @ts-ignore
                     <Link href={`/${directory.path.join('/')}`}>
                         <div
                             className={`flex flex-row items-center ${isDirectoryOpen ? "text-blue-700" : "text-orange-700"}`}>

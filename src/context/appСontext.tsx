@@ -1,20 +1,29 @@
-import React, {createContext, useContext, useState} from "react";
+import React, {createContext, useContext, useState, FC, ReactNode, SetStateAction, Dispatch} from "react";
 
-const AppContext = createContext({
+type AppContextProviderType = {
+    children: ReactNode;
+};
+
+export type AppContextType = {
+    isAdvancedSearchMode: boolean;
+    setIsAdvancedSearchMode: Dispatch<SetStateAction<boolean>>;
+}
+
+const AppContext = createContext<AppContextType>({
    isAdvancedSearchMode: false,
-   setIsAdavancedSearchMode: () => false,
+   setIsAdvancedSearchMode: () => false,
 });
 
-const useAppProvider = () => {
-    const [isAdvancedSearchMode, setIsAdavancedSearchMode] = useState<boolean>(false);
+const useAppProvider = (): AppContextType => {
+    const [isAdvancedSearchMode, setIsAdvancedSearchMode] = useState(false);
 
     return {
         isAdvancedSearchMode,
-        setIsAdavancedSearchMode
+        setIsAdvancedSearchMode
     }
 }
 
-export const AppContextProvider = ({children}) => {
+export const AppContextProvider: FC<AppContextProviderType> = ({children}) => {
     const context = useAppProvider();
     return <AppContext.Provider value={context}>{children}</AppContext.Provider>;
 }

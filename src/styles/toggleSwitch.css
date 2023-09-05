@@ -17,6 +17,10 @@
     transition: background-color .2s;
 }
 
+.react-switch-label.active {
+    background-color: #06D6A0;
+}
+
 .react-switch-label .react-switch-button {
     content: '';
     position: absolute;

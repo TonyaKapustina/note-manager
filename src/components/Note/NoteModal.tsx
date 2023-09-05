@@ -4,75 +4,79 @@ import useSWR from "swr";
 import {apiEndpoints} from "../../api/apiEndpoints";
 import {useRouter} from "next/router";
 import {isNoticeTitleNotUnique} from "../../utils/notice";
-import {NoticeType} from "../../interfaces/notice";
-import {InputField} from "../General/inputField";
+import {NoteTagType, NoteType} from "../../interfaces/note";
+import {InputField} from "../General";
 import CreatableSelect from "react-select/creatable";
+import {ERROR_MESSAGES_CATALOG} from "../../utils/constants";
+import {MultiValue} from "react-select";
 
 type NoteModalPropsType = {
-    setShowModal: (boolean) => void,
-    onSave: () => void,
-    notice?: NoticeType,
+    setShowModal: (value: boolean) => void,
+    onSave: (notice: NoteType) => Promise<void>,
+    notice?: NoteType,
 }
 
-const NoticeModal: FC<NoteModalPropsType> = ({
-                                                 setShowModal,
-                                                 notice,
-                                                 onSave,
-                                             }) => {
+export const NoteModal: FC<NoteModalPropsType> = ({
+                                                        setShowModal,
+                                                        notice,
+                                                        onSave,
+                                                    }) => {
     const {
         title = '',
         description = '',
         tags = [],
-        id,
         ...rest
     } = notice || {};
     const {query: {id: queryId = []}} = useRouter();
-    const {data: noticesData} = useSWR<NoticeType[]>(apiEndpoints.notices);
+    const {data: noticesData} = useSWR<NoteType[]>(apiEndpoints.notices);
 
     const [noteTitle, setNoteTitle] = useState(title);
     const [noteDescription, setNoteDescription] = useState(description);
-    const [noteTags, setNoteTags] = useState(tags);
-    const [hasErrors, setHasErrors] = useState(false);
+    const [noteTags, setNoteTags] = useState<MultiValue<NoteTagType>>(tags);
+    const [errorText, setErrorText] = useState('');
 
-    const currentDirectoryNotices = noticesData?.filter(({directoryId}) => directoryId === Number(queryId.slice(-1)));
+    const currentDirectoryNotices = useMemo(() => {
+        return noticesData?.filter(({directoryId}) => directoryId === Number(queryId.slice(-1))) || []
+    }, [noticesData, queryId]);
 
-    const isTitleNotUnique = isNoticeTitleNotUnique(currentDirectoryNotices, id, noteTitle);
+    const isTitleNotUnique = useMemo(() => {
+        if (currentDirectoryNotices.length && notice?.id) {
+            return isNoticeTitleNotUnique(currentDirectoryNotices, notice, noteTitle);
+        }
+    }, [currentDirectoryNotices, noteTitle, notice]);
 
     const allNoticesTags = useMemo(() => {
-        if (noticesData.length) {
-            const allTags = noticesData.map(({tags}) => tags).flat(Infinity)
-
-            return [...new Map(allTags.map(item =>
-                [item['label'], item])).values()];
+        if (noticesData?.length) {
+            return noticesData.map(({tags}) => tags).flat(Infinity);
         }
     }, [noticesData]);
 
     //TODO: add submitting on enter an closing on escape
 
-    const onInputChangeHandler = (value) => {
+    const onInputChangeHandler = (value: string) => {
         setNoteTitle(value);
 
         if (isTitleNotUnique) {
-            setHasErrors(false);
+            setErrorText(ERROR_MESSAGES_CATALOG.NOTE.TITLE_HAS_DUPLICATES);
         }
     }
 
     const onSaveClickHandler = () => {
         if (isTitleNotUnique) {
-            setHasErrors(true);
+            setErrorText(ERROR_MESSAGES_CATALOG.NOTE.TITLE_HAS_DUPLICATES);
             return;
         }
 
-        setHasErrors(false);
+        setErrorText('');
 
         const note = {
             title: title === noteTitle.trim() || noteTitle.trim() === "" ? title : noteTitle.trim(),
             description: description === noteDescription.trim() || noteDescription.trim() === "" ? description : noteDescription,
             tags: noteTags,
-            id,
             ...rest
         };
 
+        // @ts-ignore
         onSave(note);
         setShowModal(false);
     }
@@ -106,8 +110,7 @@ const NoticeModal: FC<NoteModalPropsType> = ({
                                     placeholder="Note title"
                                     value={noteTitle}
                                     onChange={onInputChangeHandler}
-                                    hasErrors={hasErrors}
-                                    errorText="The note with this name is already taken."/>
+                                    errorText={errorText} />
                             </div>
                             <div className="mb-5">
                                 <h3>Description</h3>
@@ -126,6 +129,7 @@ const NoticeModal: FC<NoteModalPropsType> = ({
                                 <h3>Tags</h3>
                                 <CreatableSelect
                                     isMulti
+                                    // @ts-ignore
                                     options={allNoticesTags}
                                     onChange={(options) => setNoteTags(options)}
                                     value={noteTags}
@@ -145,7 +149,7 @@ const NoticeModal: FC<NoteModalPropsType> = ({
                                 className="bg-emerald-500 text-white active:bg-emerald-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
                                 type="button"
                                 onClick={onSaveClickHandler}
-                                disabled={hasErrors}
+                                disabled={Boolean(errorText)}
                             >
                                 Save Changes
                             </button>
@@ -159,8 +163,6 @@ const NoticeModal: FC<NoteModalPropsType> = ({
 
     return ReactDOM.createPortal(
         modalContent,
-        document.getElementById("modal-root")
+        document.getElementById("modal-root") ?? document.body
     );
 };
-
-export default NoticeModal

@@ -1,4 +1,4 @@
-import {NoticeTagType, NoticeType} from "../interfaces/notice";
+import {NoticeTagType, NoteType} from "../interfaces/note";
 import {DirectoryType} from "../interfaces/directories";
 
 interface IAddDirectoryArg {
@@ -14,10 +14,10 @@ interface IEditDirectoryArg {
     name: string;
 }
 interface IAddNoticeArg {
-    id: number,
-    title: 'string',
-    description: '',
-    tags: NoticeTagType[]
+    title: string,
+    description: string,
+    tags: NoticeTagType[],
+    directoryId?: number;
 }
 
 export type ApiFunction<T> = (url: string, {arg}: {arg: T}) => Promise<unknown>
@@ -62,7 +62,7 @@ export const addNotice: ApiFunction<IAddNoticeArg> = async (url, {arg}) => {
     })
 }
 
-export const editNotice: ApiFunction<NoticeType> = async (url, {arg}) => {
+export const editNotice: ApiFunction<NoteType> = async (url, {arg}) => {
     return await fetch(`${url}/${arg.id}`, {
         method: 'PUT',
         headers: {
