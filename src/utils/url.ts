@@ -1,3 +1,7 @@
-export const buildUrlPathname = (urlQueries: string[]) => {
-    return urlQueries.join('/');
+export const buildUrlPathname = (urlQueryParam: string[]): string => {
+    return urlQueryParam.join('/');
+}
+
+export const getOpenDirectoryId = (urlQueryParam: string[]): number => {
+    return Number(urlQueryParam.slice(-1))
 }

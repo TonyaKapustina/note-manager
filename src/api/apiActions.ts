@@ -1,4 +1,4 @@
-import {NoticeTagType, NoteType} from "../interfaces/note";
+import {NoteTagType, NoteType} from "../interfaces/note";
 import {DirectoryType} from "../interfaces/directories";
 
 interface IAddDirectoryArg {
@@ -16,7 +16,7 @@ interface IEditDirectoryArg {
 interface IAddNoticeArg {
     title: string,
     description: string,
-    tags: NoticeTagType[],
+    tags: NoteTagType[],
     directoryId?: number;
 }
 

@@ -1,36 +1,18 @@
-import React, {useEffect, useMemo} from "react";
+import React, {useMemo} from "react";
 import {DirectoriesTree, NotesGrid, Search} from "../components";
 import arrayToTree from "../utils/arrayToTree";
-import useSWR from "swr";
-import {apiEndpoints} from "../api/apiEndpoints";
-import {useRouter} from "next/router";
-import {NoteType} from "../interfaces/note";
-import {buildUrlPathname} from "../utils/url";
 import {useDirectoryData} from "../hooks/useDirectoryData";
+import {useNotesData} from "../hooks/useNotesData";
 
-const Directories = () => {
+const Dashboard = () => {
     const {directoriesData, isDirectoriesDataLoading} = useDirectoryData();
-    const {data: noticesData, isLoading: isNoticesDataLoading} = useSWR<NoteType[], boolean>(apiEndpoints.notices);
-    const {query: {id: queryId = [], noticeId}, push} = useRouter();
+    const {isNotesDataLoading, openDirectoryNotes} = useNotesData();
 
     const directoriesTree = useMemo(() => {
         return arrayToTree(directoriesData);
     }, [directoriesData]);
 
-    const currentDirectoryNotices = useMemo(() => {
-        return noticesData?.filter(({directoryId}) => directoryId === Number(queryId.slice(-1))) || []
-    }, [noticesData, queryId])
-
-    useEffect(() => {
-        // @ts-ignore
-        if (Boolean(noticeId) && !isNoticesDataLoading && (!currentDirectoryNotices?.length || !currentDirectoryNotices?.some(({id}) => id?.toString().includes(noticeId.toString())))) {
-            // @ts-ignore
-            const url = buildUrlPathname(queryId);
-            push(url, undefined, {shallow: true});
-        }
-    }, [currentDirectoryNotices, isNoticesDataLoading, noticeId, push, queryId]);
-
-    if (isDirectoriesDataLoading && isNoticesDataLoading) {
+    if (isDirectoriesDataLoading && isNotesDataLoading) {
         return <div>Loading...</div>
     }
 
@@ -44,9 +26,9 @@ const Directories = () => {
                 <Search/>
             </div>
             {
-                !!noticesData?.length && (
+                !!openDirectoryNotes?.length && (
                     <div className="directories-notices border min-h-full overflow-y-auto p-2">
-                        <NotesGrid notices={currentDirectoryNotices}/>
+                        <NotesGrid notices={openDirectoryNotes}/>
                     </div>
                 )
             }
@@ -54,4 +36,4 @@ const Directories = () => {
     )
 }
 
-export default Directories;
+export default Dashboard;

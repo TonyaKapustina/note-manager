@@ -12,7 +12,7 @@ import {buildUrlPathname} from "../../utils/url";
 import {useDirectoryData} from "../../hooks/useDirectoryData";
 
 const Sidebar = () => {
-    const {query: {id, noticeId}, push, pathname} = useRouter();
+    const {query: {id, noteId}, push, pathname} = useRouter();
     const queryId = id as string[];
 
     const {directoriesData} = useDirectoryData();
@@ -60,7 +60,7 @@ const Sidebar = () => {
     }
 
     const onRemoveNoticeClickHandler = async () => {
-        await triggerDeleteNotice({id: Number(noticeId)});
+        await triggerDeleteNotice({id: Number(noteId)});
 
         await push(buildUrlPathname(queryId), undefined, {shallow: true});
     }
@@ -106,7 +106,7 @@ const Sidebar = () => {
                         </>
                     )}
                 {
-                    noticeId && (
+                    noteId && (
                         <button className="flex flex-col items-center p-2 hover:text-blue-700"
                                 onClick={onRemoveNoticeClickHandler}>
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}

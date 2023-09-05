@@ -23,7 +23,7 @@ export const NoteContent: FC<NoticeContentPropsType> = ({
                                                           }) => {
     const {title, id} = notice;
 
-    const {query: {id: queryId = [], noticeId}, push} = useRouter();
+    const {query: {id: queryId = [], noteId}, push} = useRouter();
 
     const {data: noticesData = []} = useSWR<NoteType[]>(apiEndpoints.notices);
     const {trigger} = useSWRMutation(apiEndpoints.notices, editNotice);
@@ -34,14 +34,14 @@ export const NoteContent: FC<NoticeContentPropsType> = ({
     const [noticeTitle, setNoticeTitle] = useState(title);
 
     useEffect(() => {
-        if (noticeId) {
-            if (Number(noticeId) === Number(id)) {
+        if (noteId) {
+            if (Number(noteId) === Number(id)) {
                 setIsSelected(true);
                 return;
             }
         }
         setIsSelected(false);
-    }, [noticeId, id]);
+    }, [noteId, id]);
 
     const onNoticeEditHandler = useCallback(async (newNoticeTitle: string) => {
         const normalizedTitle = newNoticeTitle.trim();
@@ -78,7 +78,7 @@ export const NoteContent: FC<NoticeContentPropsType> = ({
 
     const onClickHandler = () => {
         const pathname = buildUrlPathname(queryId as string[]);
-        push({pathname, query: {noticeId: id}}, undefined, {shallow: true});
+        push({pathname, query: {noteId: id}}, undefined, {shallow: true});
     }
 
     const onSaveClickHandler = async (note: NoteType) => {

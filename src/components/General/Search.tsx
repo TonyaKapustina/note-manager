@@ -1,17 +1,8 @@
-import React, {FC, useEffect, useMemo, useState} from "react";
-import useSWR from "swr";
-import {apiEndpoints} from "../../api/apiEndpoints";
-import {useAppContext} from "../../context/appСontext";
+import React, { useEffect, useState} from "react";
 import Select, {SingleValue} from 'react-select';
-import {formatStringToCamelCase} from "../../utils/formatStringToCamelCase";
 import {useRouter} from "next/router";
-import {NoteType} from "../../interfaces/note";
-
-enum searchOptionTypeEnum {
-    TITLE = 'title',
-    DESCRIPTION = 'description',
-    TAG = 'tag'
-}
+import {useSearch} from "../../hooks/useSearch";
+import {searchOptionTypeEnum} from "../../interfaces/search";
 
 interface OptionType {
     value: string;
@@ -20,69 +11,24 @@ interface OptionType {
 }
 
 export const Search = () => {
-    const {data: noticesData, isLoading: isNoticesDataLoading} = useSWR<NoteType[], boolean>(apiEndpoints.notices);
+    const searchOptions = useSearch();
+
     const {query: {search}, push, isReady} = useRouter();
-    const searchQuery = search as string;
+    const searchQuery = decodeURI(search as string);
 
-    const {isAdvancedSearchMode} = useAppContext();
     const [searchValue, setSearchValue] = useState<OptionType | null>(null);
-
-    const noticesSearchOptions = useMemo(() => {
-
-        if (!isNoticesDataLoading && noticesData?.length) {
-            const mySet = new Map();
-
-            noticesData.map(({title, tags, description}, index) => {
-                if (index > 9) {
-                    return;
-                }
-
-                mySet.set(
-                    `${formatStringToCamelCase(title)}-title`, {
-                        label: title,
-                        value: `${formatStringToCamelCase(title)}-title`,
-                        type: searchOptionTypeEnum.TITLE
-                    }
-                );
-
-                if (isAdvancedSearchMode) {
-                    const descriptionOptionValue = `${formatStringToCamelCase(description.slice(0, 20))}-description`;
-                    if (description.length >= 2) {
-                        mySet.set(
-                            descriptionOptionValue, {
-                                label: description,
-                                value: descriptionOptionValue,
-                                type: searchOptionTypeEnum.DESCRIPTION
-                            }
-                        );
-                    }
-                    tags.map(({label}) =>
-                        mySet.set(
-                            `${formatStringToCamelCase(label)}-tag`, {
-                                label,
-                                value: `${formatStringToCamelCase(label)}-tag`,
-                                type: searchOptionTypeEnum.TAG
-                            }
-                        )
-                    )
-                }
-            });
-
-            return Array.from(mySet.values());
-        }
-    }, [isAdvancedSearchMode, isNoticesDataLoading, noticesData]);
 
     useEffect(() => {
         if (isReady && searchQuery) {
-            setSearchValue(noticesSearchOptions?.find(({label}) => label === decodeURI(searchQuery)));
+            setSearchValue(searchOptions?.find(({label}) => label === searchQuery));
         }
-    }, [isReady, noticesSearchOptions, searchQuery]);
+    }, [isReady, searchOptions, searchQuery]);
 
     const searchOptionLabel = ({label, type}: { label: string, type: searchOptionTypeEnum }): React.ReactNode => (
         <div
             className='flex'
         >
-            <div className='truncate text-ellipsis'>{label || decodeURI(searchQuery)}</div>
+            <div className='truncate text-ellipsis'>{label || searchQuery}</div>
             {
                 type && (
                     <div className='italic text-stone-700 text-xs ml-auto pl-5'>
@@ -92,10 +38,10 @@ export const Search = () => {
         </div>
     );
 
-    const onSelectChange = (option: SingleValue<OptionType>): void => {
+    const onSelectChange = async (option: SingleValue<OptionType>) => {
         if (option) {
             setSearchValue(option);
-            push({
+            await push({
                 pathname: '/results',
                 query: {search: encodeURI(option.label)},
             }, undefined, {shallow: true})
@@ -108,7 +54,7 @@ export const Search = () => {
                 <Select
                     inputId="search"
                     name="search"
-                    options={noticesSearchOptions || []}
+                    options={searchOptions}
                     value={searchValue}
                     onChange={onSelectChange}
                     formatOptionLabel={searchOptionLabel}
