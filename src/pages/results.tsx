@@ -3,14 +3,12 @@ import Link from "next/link";
 import {useRouter} from "next/router";
 import useSWR from "swr";
 import {apiEndpoints} from "../api/apiEndpoints";
-import {useAppContext} from "../context/appСontext";
-import {Note, Search} from "../components";
+import {AdvancedSearchEnum, Note, Search} from "../components";
 import {DEFAULT_DIRECTORY_ID} from "../utils/constants";
 import {NoteType} from "../interfaces/note";
 
 const SearchResults = () => {
-    const {query: {search}} = useRouter();
-    const {isAdvancedSearchMode} = useAppContext();
+    const {query: {search, isAdvancedSearch}} = useRouter();
     const {data: noticesData} = useSWR<NoteType[]>(apiEndpoints.notices);
 
     const noticesSearchResults = useMemo(() => {
@@ -19,11 +17,11 @@ const SearchResults = () => {
             return noticesData.filter(({title, tags, description}) => {
                 const isTitleIncluded = title.toLowerCase().includes(searchString.trim().toLowerCase());
 
-                if (!isAdvancedSearchMode) {
+                if (!isAdvancedSearch || isAdvancedSearch === AdvancedSearchEnum.OFF) {
                     return isTitleIncluded
                 }
 
-                if (isAdvancedSearchMode) {
+                if (isAdvancedSearch === AdvancedSearchEnum.ON) {
                     const isDescriptionIncluded = description.toLowerCase().includes(searchString.trim().toLowerCase());
                     const isTagIncluded = tags.some(({label}) => label.toLowerCase().includes(searchString.trim().toLowerCase()));
 
@@ -31,7 +29,7 @@ const SearchResults = () => {
                 }
             }) || []
         }
-    }, [noticesData, search, isAdvancedSearchMode]);
+    }, [noticesData, search, isAdvancedSearch]);
 
     const searchResultsTitle = !!noticesSearchResults?.length ? 'Search results' : 'No search results'
 

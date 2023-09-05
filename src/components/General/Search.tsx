@@ -13,8 +13,8 @@ interface OptionType {
 export const Search = () => {
     const searchOptions = useSearch();
 
-    const {query: {search}, push, isReady} = useRouter();
-    const searchQuery = decodeURI(search as string);
+    const {query, push, isReady} = useRouter();
+    const searchQuery = decodeURI(query.search as string);
 
     const [searchValue, setSearchValue] = useState<OptionType | null>(null);
 
@@ -41,9 +41,14 @@ export const Search = () => {
     const onSelectChange = async (option: SingleValue<OptionType>) => {
         if (option) {
             setSearchValue(option);
+            const updatedQuery = {
+                ...query,
+                search: encodeURI(option.label)
+            };
+
             await push({
                 pathname: '/results',
-                query: {search: encodeURI(option.label)},
+                query: {...updatedQuery},
             }, undefined, {shallow: true})
         }
     }
