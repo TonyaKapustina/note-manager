@@ -1,77 +1,68 @@
-import React, {FC, useMemo, useState} from "react";
+import React, {FC, useEffect, useMemo} from "react";
 import ReactDOM from "react-dom";
-import useSWR from "swr";
-import {apiEndpoints} from "../../api/apiEndpoints";
-import {useRouter} from "next/router";
-import {isNoticeTitleNotUnique} from "../../utils/notice";
 import {NoteTagType, NoteType} from "../../interfaces/note";
-import {InputField} from "../General";
 import CreatableSelect from "react-select/creatable";
 import {ERROR_MESSAGES_CATALOG} from "../../utils/constants";
-import {MultiValue} from "react-select";
+import {useNotesData} from "../../hooks/useNotesData";
+import {Controller, SubmitHandler, useForm} from "react-hook-form";
 
 type NoteModalPropsType = {
     setShowModal: (value: boolean) => void,
     onSave: (notice: NoteType) => Promise<void>,
-    notice?: NoteType,
+    note?: NoteType,
+}
+
+interface IFormModal {
+    noteName: string,
+    noteDescription: string,
+    noteTags: NoteTagType[]
 }
 
 export const NoteModal: FC<NoteModalPropsType> = ({
-                                                        setShowModal,
-                                                        notice,
-                                                        onSave,
-                                                    }) => {
+                                                      setShowModal,
+                                                      onSave,
+                                                      note,
+                                                  }) => {
     const {
         title = '',
         description = '',
         tags = [],
         ...rest
-    } = notice || {};
-    const {query: {id: queryId = []}} = useRouter();
-    const {data: noticesData} = useSWR<NoteType[]>(apiEndpoints.notices);
+    } = note || {};
+    const isEditMode = note?.title;
+    const modalTitle = isEditMode ? `Edit "${title}"` : 'Add new note';
 
-    const [noteTitle, setNoteTitle] = useState(title);
-    const [noteDescription, setNoteDescription] = useState(description);
-    const [noteTags, setNoteTags] = useState<MultiValue<NoteTagType>>(tags);
-    const [errorText, setErrorText] = useState('');
-
-    const currentDirectoryNotices = useMemo(() => {
-        return noticesData?.filter(({directoryId}) => directoryId === Number(queryId.slice(-1))) || []
-    }, [noticesData, queryId]);
-
-    const isTitleNotUnique = useMemo(() => {
-        if (currentDirectoryNotices.length && notice?.id) {
-            return isNoticeTitleNotUnique(currentDirectoryNotices, notice, noteTitle);
+    const {notesData, openDirectoryNotes} = useNotesData();
+    const {register, handleSubmit, control, formState: {errors}} = useForm<IFormModal>({
+        defaultValues: {
+            noteName: title,
+            noteDescription: description,
+            noteTags: tags
         }
-    }, [currentDirectoryNotices, noteTitle, notice]);
+    })
+
+    useEffect(() => {
+        const close = (e) => {
+            if (e.keyCode === 27) {
+                setShowModal(false);
+            }
+        };
+
+        window.addEventListener('keydown', close)
+        return () => window.removeEventListener('keydown', close)
+    }, [setShowModal])
 
     const allNoticesTags = useMemo(() => {
-        if (noticesData?.length) {
-            return noticesData.map(({tags}) => tags).flat(Infinity);
+        if (notesData?.length) {
+            return notesData.map(({tags}) => tags).flat(Infinity);
         }
-    }, [noticesData]);
+    }, [notesData]);
 
-    //TODO: add submitting on enter an closing on escape
-
-    const onInputChangeHandler = (value: string) => {
-        setNoteTitle(value);
-
-        if (isTitleNotUnique) {
-            setErrorText(ERROR_MESSAGES_CATALOG.NOTE.TITLE_HAS_DUPLICATES);
-        }
-    }
-
-    const onSaveClickHandler = () => {
-        if (isTitleNotUnique) {
-            setErrorText(ERROR_MESSAGES_CATALOG.NOTE.TITLE_HAS_DUPLICATES);
-            return;
-        }
-
-        setErrorText('');
-
+    const onSubmit: SubmitHandler<IFormModal> = (data) => {
+        const {noteName, noteDescription, noteTags} = data;
         const note = {
-            title: title === noteTitle.trim() || noteTitle.trim() === "" ? title : noteTitle.trim(),
-            description: description === noteDescription.trim() || noteDescription.trim() === "" ? description : noteDescription,
+            title: noteName.trim(),
+            description: noteDescription.trim(),
             tags: noteTags,
             ...rest
         };
@@ -81,80 +72,109 @@ export const NoteModal: FC<NoteModalPropsType> = ({
         setShowModal(false);
     }
 
-    // TODO: wrap in form tag
+    console.log(errors);
 
     const modalContent = (
         <>
             <div
                 className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none"
             >
-                <div className="relative w-auto my-6 mx-auto max-w-3xl">
-                    <div
-                        className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
+                <div className="relative max-w-[1045px] w-full p-5">
+                    <form onSubmit={handleSubmit(onSubmit)}
+                          className="border-0 shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none p-10">
                         <div
-                            className="flex items-start justify-between p-5 border-b border-solid border-slate-200 rounded-t">
-                            <h2 className="text-3xl font-semibold">
-                                Manager
+                            className="flex items-start pb-8">
+                            <h2 className="text-2xl font-semibold">
+                                {modalTitle}
                             </h2>
-                            <button
-                                className="p-1 ml-auto bg-transparent border-0 text-black opacity-5 float-right text-3xl leading-none font-semibold outline-none focus:outline-none"
-                                onClick={() => setShowModal(false)}
-                            >
-                            </button>
                         </div>
-                        <div className="relative p-6 flex-auto">
-                            <div className="mb-5">
-                                <h3>Title</h3>
-                                <InputField
-                                    name="noteName"
-                                    placeholder="Note title"
-                                    value={noteTitle}
-                                    onChange={onInputChangeHandler}
-                                    errorText={errorText} />
+                        <div className="relative flex gap-x-4">
+                            <div className="w-1/3">
+                                <div className='mb-6'>
+                                    <label htmlFor="noteName" className="form-control-label">Note Title</label>
+                                    <input
+                                        {...register("noteName", {
+                                            validate: {
+                                                isEmpty: value => {
+                                                    if (value.trim() === '') {
+                                                        return ERROR_MESSAGES_CATALOG.NOTE.EMPTY_TITLE
+                                                    }
+                                                },
+                                                hasDuplicates: value => {
+                                                    if (isEditMode && value === title) {
+                                                        return
+                                                    }
+                                                    const hasDuplicates = openDirectoryNotes.some(({title}) => title.toLowerCase() === value.trim().toLowerCase());
+                                                    if (hasDuplicates) {
+                                                        return ERROR_MESSAGES_CATALOG.NOTE.TITLE_HAS_DUPLICATES
+                                                    }
+                                                }
+                                            }
+                                        })}
+                                        placeholder="Add a title here"
+                                        id="noteName"
+                                        className={`form-control ${errors.noteName?.message && 'border-red-500'}`}
+                                    />
+                                    {
+                                        errors.noteName?.message && (
+                                            <small className="font-normal leading-normal mt-0 mb-4 text-red-800">
+                                                {errors.noteName?.message}
+                                            </small>
+                                        )
+                                    }
+                                </div>
+                                <div>
+                                    <label className="form-control-label">Tags</label>
+                                    <Controller
+                                        name="noteTags"
+                                        control={control}
+                                        render={({field}) => {
+                                            return (
+                                                <CreatableSelect
+                                                    isMulti
+                                                    // @ts-ignore
+                                                    options={allNoticesTags}
+                                                    value={field.value}
+                                                    className="form-select"
+                                                    {...field}
+                                                />
+                                            )
+                                        }}
+                                    />
+                                </div>
                             </div>
-                            <div className="mb-5">
-                                <h3>Description</h3>
+
+                            <div className="w-2/3">
+                                <label htmlFor="noteDescription" className="form-control-label">Note body text</label>
                                 <textarea
                                     rows={4}
                                     cols={40}
                                     name="noteDescription"
                                     id="noteDescription"
-                                    placeholder="Note description"
-                                    className="px-3 py-3 placeholder-slate-300 text-slate-600 relative bg-white bg-white rounded text-sm border-0 shadow outline-none focus:outline-none focus:ring w-full"
-                                    value={noteDescription}
-                                    onChange={(event) => setNoteDescription(event.target.value)}
-                                />
-                            </div>
-                            <div className="mb-5">
-                                <h3>Tags</h3>
-                                <CreatableSelect
-                                    isMulti
-                                    // @ts-ignore
-                                    options={allNoticesTags}
-                                    onChange={(options) => setNoteTags(options)}
-                                    value={noteTags}
+                                    placeholder="Add you note description here"
+                                    className="form-control"
+                                    {...register("noteDescription")}
                                 />
                             </div>
                         </div>
                         <div
-                            className="flex items-center justify-end p-6 border-t border-solid border-slate-200 rounded-b">
+                            className="flex items-center justify-end pt-8">
                             <button
-                                className="text-red-500 background-transparent font-bold uppercase px-6 py-2 text-sm outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-                                type="button"
+                                className="form-button"
+                                type="reset"
                                 onClick={() => setShowModal(false)}
                             >
-                                Close
+                                Cancel
                             </button>
                             <button
-                                className="bg-emerald-500 text-white active:bg-emerald-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-                                type="button"
-                                onClick={onSaveClickHandler}
-                                disabled={Boolean(errorText)}
+                                className="form-button"
+                                type="submit"
+                                disabled={Boolean(Object.keys(errors).length)}
                             >
-                                Save Changes
+                                Save
                             </button>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
             <div className="opacity-25 fixed inset-0 z-40 bg-black" onClick={() => setShowModal(false)}></div>

@@ -1,5 +1,4 @@
 import Header from './Header'
-import Sidebar from './Sidebar'
 import React, {FC, ReactNode} from "react";
 
 type LayoutPropsType = {
@@ -8,11 +7,10 @@ type LayoutPropsType = {
 
 export const Layout: FC<LayoutPropsType> = ({children}) => {
     return (
-        <div className="flex flex-col grow min-h-full">
-            <Header/>
-            <main className="flex grow min-h-full">
-                <Sidebar/>
-                <section className="flex grow p-4">
+        <div className="flex flex-col grow h-screen">
+            <main className="flex grow min-h-full flex-col">
+                <Header/>
+                <section className="flex grow main-section">
                     {children}
                 </section>
             </main>

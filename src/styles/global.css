@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @import "./toggleSwitch.css";
+@import "./modal.css";
+@import "./note.css";
+@import "./directory.css";
+@import "./results.css";
 
 @layer base {
     html {
@@ -24,27 +28,45 @@ div#__next {
 
 .dashboard-layout {
     display: grid;
-    grid-template-areas:
-            "b a"
-            "b c"
-            "b c";
-    grid-template-rows: 50px 1fr;
-    grid-template-columns: 30% 1fr;
-    gap: 20px;
+    grid-template-columns: minmax(30%, 40%) minmax(30%, 1fr);
     width: 100%;
 }
 
 .dashboard-directories {
-    display: grid;
-    grid-area: b;
+    @apply flex flex-col p-8 pt-6
 }
 
-.dashboard-search {
-    display: grid;
-    grid-area: a;
+.options-row {
+    @apply flex items-center
 }
 
-.dashboard-notices {
-    display: grid;
-    grid-area: c;
+.options {
+    @apply w-6 h-6 rounded-sm flex items-center justify-center overflow-hidden fill-option-color
+}
+
+.options svg {
+    @apply fill-option-color
+}
+.options + .options {
+    @apply ml-2
+}
+
+.add-button {
+    @apply flex items-center mt-10 text-base
+}
+
+.add-button svg {
+    @apply fill-button-color-accent mr-5
+}
+
+.add-button-directory {
+    @apply mb-auto
+}
+
+.select [class*="IndicatorsContainer"]{
+    display: none;
+}
+
+.main-section {
+    max-height: calc(100% - 92px);
 }

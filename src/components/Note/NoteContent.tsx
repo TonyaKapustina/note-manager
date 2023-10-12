@@ -1,130 +1,151 @@
-import React, {FC, useCallback, useEffect, useState} from "react";
-import {InputField, Tooltip} from "../General";
-import {isNoticeTitleNotUnique} from "../../utils/notice";
-import useSWR from "swr";
+import React, {FC, useEffect, useRef, useState} from "react";
+import {Tooltip} from "../General";
 import {apiEndpoints} from "../../api/apiEndpoints";
 import {NoteType} from "../../interfaces/note";
 import {enqueueSnackbar} from "notistack";
 import useSWRMutation from "swr/mutation";
-import {editNotice} from "../../api/apiActions";
-import {useRouter} from "next/router";
+import {deleteNotice, editNotice} from "../../api/apiActions";
 import {ERROR_MESSAGES_CATALOG} from "../../utils/constants";
 import {NoteModal} from "./NoteModal";
+import {useNotesData} from "../../hooks/useNotesData";
+import {useCustomRoute} from "../../hooks/useCustomRoute";
+import {useForm} from "react-hook-form";
 import {buildUrlPathname} from "../../utils/url";
+import {useRouter} from "next/router";
 
-type NoticeContentPropsType = {
-    notice: NoteType,
+type NoteContentPropsType = {
+    note: NoteType,
     showTooltip?: boolean
 }
 
-export const NoteContent: FC<NoticeContentPropsType> = ({
-                                                              notice,
-                                                              showTooltip = true
-                                                          }) => {
-    const {title, id} = notice;
+export const NoteContent: FC<NoteContentPropsType> = ({
+                                                          note,
+                                                          showTooltip = true
+                                                      }) => {
+    const {title, description, id} = note || {};
 
-    const {query: {id: queryId = [], noteId}, push} = useRouter();
-
-    const {data: noticesData = []} = useSWR<NoteType[]>(apiEndpoints.notices);
+    const customRoute = useCustomRoute();
+    const {openDirectoryNotes, currentDirectory} = useNotesData();
     const {trigger} = useSWRMutation(apiEndpoints.notices, editNotice);
+    const {trigger: triggerDeleteNote} = useSWRMutation(apiEndpoints.notices(), deleteNotice);
 
     const [showNoteModal, setShowNoteModal] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
-    const [isSelected, setIsSelected] = useState(false);
-    const [noticeTitle, setNoticeTitle] = useState(title);
+    const deleteBtn = useRef(null);
+
+    const {register, handleSubmit, formState: {errors}, reset} = useForm({
+        defaultValues: {
+            noteName: title,
+        }
+    })
 
     useEffect(() => {
-        if (noteId) {
-            if (Number(noteId) === Number(id)) {
-                setIsSelected(true);
-                return;
-            }
-        }
-        setIsSelected(false);
-    }, [noteId, id]);
-
-    const onNoticeEditHandler = useCallback(async (newNoticeTitle: string) => {
-        const normalizedTitle = newNoticeTitle.trim();
-
-        setIsEditing(false);
-
-        if (normalizedTitle === '') {
-            enqueueSnackbar(ERROR_MESSAGES_CATALOG.NOTE.EMPTY_TITLE, {
+        if (errors?.noteName) {
+            enqueueSnackbar(errors?.noteName.message, {
                 variant: 'error'
             });
-            setNoticeTitle(title);
-            return;
+            reset();
+            setIsEditing(false);
         }
+    }, [errors?.noteName, reset]);
 
-        if (normalizedTitle === title) {
-            return;
+    const onClickHandler = async (event) => {
+        if (!deleteBtn.current.contains(event.target)) {
+            await customRoute.pushToUrl({noteId: id});
         }
-
-        if (isNoticeTitleNotUnique(noticesData, notice, normalizedTitle)) {
-            enqueueSnackbar(ERROR_MESSAGES_CATALOG.NOTE.TITLE_HAS_DUPLICATES, {
-                variant: 'error'
-            });
-            setNoticeTitle(title);
-            return;
-        }
-
-        setNoticeTitle(normalizedTitle);
-        await trigger({
-            ...notice,
-            title: normalizedTitle
-        });
-
-    }, [notice, noticesData, setNoticeTitle, title, trigger]);
-
-    const onClickHandler = () => {
-        const pathname = buildUrlPathname(queryId as string[]);
-        push({pathname, query: {noteId: id}}, undefined, {shallow: true});
     }
 
     const onSaveClickHandler = async (note: NoteType) => {
-        setNoticeTitle(note.title.trim());
-        await trigger({...note, directoryId: Number(queryId.slice(-1))});
+        await trigger({...note, directoryId: currentDirectory});
+    }
+
+    const onSubmit = async (data) => {
+        const normalizedTitle = data.noteName.trim();
+        await trigger({...note, directoryId: currentDirectory, title: normalizedTitle});
+        setIsEditing(false);
+    }
+
+    const onDeleteClickHandler = async () => {
+        await customRoute.resetUrlParams();
+        await triggerDeleteNote({id});
     }
 
     return (
         <>
-            <Tooltip text={noticeTitle} isVisible={showTooltip}>
+            <Tooltip text={title} isVisible={showTooltip}>
                 <div
                     onClick={onClickHandler}
-                    className={`flex flex-col items-center rounded-md p-2 ${isSelected && 'bg-blue-100'}`}>
-                    <svg
-                        onDoubleClick={() => setShowNoteModal(true)}
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth="1.5"
-                        stroke="currentColor"
-                        className={`w-20 h-20`}>
-                        <path strokeLinecap="round" strokeLinejoin="round"
-                              d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
-                    </svg>
+                    onDoubleClick={() => !isEditing && setShowNoteModal(true)}
+                    className="note">
                     <div>
-                        {isEditing ?
-                            <InputField
-                                name="noticeTitle"
-                                value={noticeTitle}
-                                onChange={setNoticeTitle}
-                                editEntityRequest={onNoticeEditHandler}
-                                className={'w-[100%]'}
-                            />
-                            : <h5
-                                className="truncate text-ellipsis max-w-[100px]"
-                                onClick={() => setIsEditing(true)}
+                        <div className="note-header">
+                            {isEditing &&
+                                <form onSubmit={handleSubmit(onSubmit)} onBlur={handleSubmit(onSubmit)}
+                                      className="note-header-form">
+                                    <input
+                                        className="form-control"
+                                        autoFocus
+                                        {...register("noteName", {
+                                            validate: {
+                                                isEmpty: value => {
+                                                    if (value.trim() === '') {
+                                                        return ERROR_MESSAGES_CATALOG.NOTE.EMPTY_TITLE
+                                                    }
+                                                },
+                                                hasDuplicates: value => {
+                                                    if (value === title) {
+                                                        setIsEditing(false);
+                                                        return
+                                                    }
+
+                                                    const hasDuplicates = openDirectoryNotes.some(({title}) => title.toLowerCase() === value.trim().toLowerCase());
+
+                                                    if (hasDuplicates) {
+                                                        return ERROR_MESSAGES_CATALOG.NOTE.TITLE_HAS_DUPLICATES
+                                                    }
+                                                }
+                                            }
+                                        })}
+                                    />
+                                </form>
+                            }
+                            <h3
+                                className="note-title"
                             >
                                 {title}
-                            </h5>
-                        }
+                            </h3>
+                            <button className="options" onClick={() => setIsEditing(true)}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                     fill="none">
+                                    <rect width="24" height="24" fill="inherit"/>
+                                    <path
+                                        d="M5 12.3542C5 11.9728 5.13034 11.6517 5.39101 11.391C5.65168 11.1303 6.00454 11 6.44959 11C6.89464 11 7.2475 11.1303 7.50817 11.391C7.76885 11.6517 7.89918 11.9728 7.89918 12.3542C7.89918 12.7293 7.76885 13.0472 7.50817 13.3079C7.2475 13.5622 6.89464 13.6894 6.44959 13.6894C6.00454 13.6894 5.65168 13.5622 5.39101 13.3079C5.13034 13.0472 5 12.7293 5 12.3542Z"
+                                        fill="black"/>
+                                    <path
+                                        d="M10.5504 12.3542C10.5504 11.9728 10.6807 11.6517 10.9414 11.391C11.2021 11.1303 11.555 11 12 11C12.4451 11 12.7979 11.1303 13.0586 11.391C13.3193 11.6517 13.4496 11.9728 13.4496 12.3542C13.4496 12.7293 13.3193 13.0472 13.0586 13.3079C12.7979 13.5622 12.4451 13.6894 12 13.6894C11.555 13.6894 11.2021 13.5622 10.9414 13.3079C10.6807 13.0472 10.5504 12.7293 10.5504 12.3542Z"
+                                        fill="black"/>
+                                    <path
+                                        d="M16.1008 12.3542C16.1008 11.9728 16.2312 11.6517 16.4918 11.391C16.7525 11.1303 17.1054 11 17.5504 11C17.9955 11 18.3483 11.1303 18.609 11.391C18.8697 11.6517 19 11.9728 19 12.3542C19 12.7293 18.8697 13.0472 18.609 13.3079C18.3483 13.5622 17.9955 13.6894 17.5504 13.6894C17.1054 13.6894 16.7525 13.5622 16.4918 13.3079C16.2312 13.0472 16.1008 12.7293 16.1008 12.3542Z"
+                                        fill="black"/>
+                                </svg>
+                            </button>
+                            <button ref={deleteBtn} className="options" onClick={onDeleteClickHandler}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                     fill="none">
+                                    <rect width="24" height="24" rx="4" fill="inherit"/>
+                                    <path d="M16 11V14.0567H8V11H16Z" fill="black"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <p className="note-description line-clamp-5">
+                            {description}
+                        </p>
                     </div>
                 </div>
             </Tooltip>
             {
                 showNoteModal && (
-                    <NoteModal notice={notice} setShowModal={setShowNoteModal} onSave={onSaveClickHandler}/>
+                    <NoteModal note={note} setShowModal={setShowNoteModal} onSave={onSaveClickHandler}/>
                 )
             }
         </>

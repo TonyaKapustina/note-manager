@@ -8,6 +8,6 @@ export type NoteType = {
     title: string,
     description: string,
     tags: NoteTagType[]
-    position?: number,
-    directoryId?: number,
+    position: number,
+    directoryId: number,
 }

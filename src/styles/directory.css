@@ -1,0 +1,24 @@
+.directory-tree {
+    @apply w-full
+}
+
+.directory {
+    @apply flex rounded-md justify-between px-4 border-l-8 bg-item-color overflow-hidden border-accent mb-2 relative
+}
+
+.directory svg {
+    @apply flex-shrink-0
+}
+
+.directory input {
+    max-width: calc(100% - 2rem);
+    @apply absolute top-2 bottom-2
+}
+
+.directory-title {
+    @apply text-base truncate text-ellipsis w-full font-semibold ml-2
+}
+
+.directory-count {
+    @apply px-2 rounded-full flex items-center justify-center mr-1 bg-white
+}

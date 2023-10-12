@@ -52,7 +52,7 @@ export const editDirectory: ApiFunction<DirectoryType> = async (url, {arg}) => {
     })
 }
 
-export const addNotice: ApiFunction<IAddNoticeArg> = async (url, {arg}) => {
+export const addNotice: ApiFunction<Omit<NoteType, 'position' | 'id'>> = async (url, {arg}) => {
     await fetch(url, {
         method: 'POST',
         headers: {

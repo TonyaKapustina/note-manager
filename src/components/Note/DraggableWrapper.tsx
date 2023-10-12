@@ -7,7 +7,7 @@ type NoticeDraggableWrapperPropsType = {
     moveCard?: (dragIndex: number, hoverIndex: number) => void;
 }
 
-export const NoticeDraggableWrapper: FC<NoticeDraggableWrapperPropsType> = ({
+export const NoteDraggableWrapper: FC<NoticeDraggableWrapperPropsType> = ({
                                                                                 children,
                                                                                 id,
                                                                                 moveCard,

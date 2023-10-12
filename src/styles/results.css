@@ -1,0 +1,3 @@
+.results {
+    @apply flex flex-col grow p-10 pt-0
+}

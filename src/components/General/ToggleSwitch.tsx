@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {useRouter} from "next/router";
 import {buildUrlPathname} from "../../utils/url";
+import {Tooltip} from "./Tooltip";
 
 export enum AdvancedSearchEnum {
     ON = 'on',
@@ -8,7 +9,7 @@ export enum AdvancedSearchEnum {
 }
 
 export const ToggleSwitch = () => {
-    const {query, push } = useRouter();
+    const {query, push, pathname} = useRouter();
     const [toggleValue, setToggleValue] = useState(false);
 
     useEffect(() => {
@@ -17,34 +18,41 @@ export const ToggleSwitch = () => {
         }
     }, [query.isAdvancedSearch]);
 
-    const onInputChange = async() => {
+    const onInputChange = async () => {
         setToggleValue(!toggleValue);
 
+        const {id, ...rest} = query;
+
         const updatedQuery = {
-            ...query,
+            ...rest,
             isAdvancedSearch: !toggleValue ? AdvancedSearchEnum.ON : AdvancedSearchEnum.OFF,
         };
 
-        const url = buildUrlPathname(query.id as string[]);
-        await push({url, query: {...updatedQuery}}, undefined, {shallow: true});
+        const url = {
+            pathname: query?.id ? buildUrlPathname(query?.id as string[]) : pathname,
+            query: {...updatedQuery}
+        };
+
+        await push(url, undefined, {shallow: true});
     };
 
     return (
-        <div className='flex flex-row items-center'>
-            <label className='mr-5'>Advanced Search Mode</label>
-            <input
-                className="react-switch-checkbox"
-                id="react-switch-new"
-                type="checkbox"
-                checked={toggleValue}
-                onChange={onInputChange}
-            />
-            <label
-                className={`react-switch-label ${toggleValue && 'active'}`}
-                htmlFor="react-switch-new"
-            >
-                <span className={`react-switch-button`}/>
-            </label>
-        </div>
+        <Tooltip text="Advanced search mode">
+            <div className='flex flex-row items-center ml-2'>
+                <input
+                    className="react-switch-checkbox"
+                    id="react-switch-new"
+                    type="checkbox"
+                    checked={toggleValue}
+                    onChange={onInputChange}
+                />
+                <label
+                    className={`react-switch-label ${toggleValue && 'active'}`}
+                    htmlFor="react-switch-new"
+                >
+                    <span className={`react-switch-button`}/>
+                </label>
+            </div>
+        </Tooltip>
     );
 };

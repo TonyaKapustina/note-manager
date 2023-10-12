@@ -1,11 +1,11 @@
 import {NoteType} from "../interfaces/note";
 
-export const isNoticeTitleNotUnique = (noticesList: NoteType[], notice: NoteType, noticeTitle?: string): null | boolean => {
-    if (!noticeTitle || !noticesList?.length || !notice?.id) {
+export const isNoteTitleNotUnique = (notesList: NoteType[], note: NoteType, noteTitle?: string): null | boolean => {
+    if (!noteTitle || !notesList?.length || !note?.id) {
         return null;
     }
-    return noticesList.filter(
-        (item) => item.id !== notice.id && item.directoryId === notice.directoryId
+    return notesList.filter(
+        (item) => item.id !== note.id && item.directoryId === note.directoryId
     ).some(
-        ({title}) => title === noticeTitle);
+        ({title}) => title === noteTitle);
 }

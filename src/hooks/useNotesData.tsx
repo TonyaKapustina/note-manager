@@ -9,10 +9,11 @@ export const useNotesData = () => {
     const {data, isLoading} = useSWR<NoteType[], boolean>(apiEndpoints.notices);
     const {query: {id, noteId}, push} = useRouter();
     const queryId = id as string[];
+    const currentDirectory = getOpenDirectoryId(queryId);
 
     const openDirectoryNotes = useMemo(() => {
         if (!isLoading && queryId && data?.length) {
-            return data.filter(({directoryId}) => directoryId === getOpenDirectoryId(queryId))
+            return data.filter(({directoryId}) => directoryId === currentDirectory)
         }
     }, [data, isLoading, queryId]);
 
@@ -29,6 +30,7 @@ export const useNotesData = () => {
     return {
         notesData: data || [],
         isNotesDataLoading: isLoading,
-        openDirectoryNotes: openDirectoryNotes || []
+        openDirectoryNotes: openDirectoryNotes || [],
+        currentDirectory
     }
 }

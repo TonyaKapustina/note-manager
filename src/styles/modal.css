@@ -1,0 +1,24 @@
+.form-control-label {
+    @apply mb-2 block
+}
+
+.form-control {
+    @apply rounded border border-control-border-color py-2 px-6 w-full placeholder-placeholder-color
+}
+
+.form-select input {
+    @apply form-control
+}
+
+textarea.form-control {
+    resize: none;
+    @apply h-48
+}
+
+button.form-button {
+    @apply px-11 ease-linear transition-all duration-150 border border-button-color-accent h-11 flex-shrink-0
+}
+
+.form-button + .form-button {
+    @apply ml-5
+}

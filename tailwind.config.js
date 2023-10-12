@@ -1003,8 +1003,21 @@ module.exports = {
             40: '40',
             50: '50',
         },
+        extend: {
+            colors: {
+                "control-border-color": "#E3E3E3",
+                "placeholder-color": "#353535",
+                "button-color-accent": '#353535',
+                "button-color-secondary": '#E3E3E3',
+                "option-color": "#EBEBEB",
+                "item-color": "#FBFBFB",
+                "accent": "#808080",
+                "directory-open-color": "#E3E3E3"
+            },
+        },
     },
     plugins: [
         "./src/**/*.{js,ts,jsx,tsx}",
+        require('@tailwindcss/line-clamp'),
     ],
 }

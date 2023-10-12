@@ -1,8 +1,11 @@
-import React, { useEffect, useState} from "react";
+import React, {FC, useEffect, useState} from "react";
 import Select, {SingleValue} from 'react-select';
 import {useRouter} from "next/router";
 import {useSearch} from "../../hooks/useSearch";
 import {searchOptionTypeEnum} from "../../interfaces/search";
+import {Controller, useForm} from "react-hook-form";
+import CreatableSelect from "react-select/creatable";
+import {useCustomRoute} from "../../hooks/useCustomRoute";
 
 interface OptionType {
     value: string;
@@ -10,19 +13,28 @@ interface OptionType {
     type: searchOptionTypeEnum;
 }
 
-export const Search = () => {
+type SearchPropsType = {
+    isResetAvailable: boolean
+}
+
+export const Search: FC<SearchPropsType> = ({isResetAvailable = false}) => {
     const searchOptions = useSearch();
 
     const {query, push, isReady} = useRouter();
     const searchQuery = decodeURI(query.search as string);
 
-    const [searchValue, setSearchValue] = useState<OptionType | null>(null);
+    const {control, handleSubmit, setValue, reset} = useForm({
+        mode: 'onChange',
+        defaultValues: {
+            search: searchQuery || null,
+        }
+    })
 
     useEffect(() => {
         if (isReady && searchQuery) {
-            setSearchValue(searchOptions?.find(({label}) => label === searchQuery));
+            setValue('search', searchOptions?.find(({label}) => label === searchQuery));
         }
-    }, [isReady, searchOptions, searchQuery]);
+    }, [isReady, searchOptions, searchQuery, setValue]);
 
     const searchOptionLabel = ({label, type}: { label: string, type: searchOptionTypeEnum }): React.ReactNode => (
         <div
@@ -38,11 +50,11 @@ export const Search = () => {
         </div>
     );
 
-    const onSelectChange = async (option: SingleValue<OptionType>) => {
-        if (option) {
-            setSearchValue(option);
+    const navigateToResultsPage = async (option: SingleValue<OptionType>) => {
+        if (option.label) {
+            const {id, ...rest} = query;
             const updatedQuery = {
-                ...query,
+                ...rest,
                 search: encodeURI(option.label)
             };
 
@@ -53,18 +65,58 @@ export const Search = () => {
         }
     }
 
+    const resetFormClickHandler = async () => {
+        const {search, id, ...rest} = query;
+        await push({
+            pathname: '/results',
+            query: {...rest},
+        }, undefined, {shallow: true});
+        reset();
+    }
+
+    const onSubmit = async ({search}) => {
+        await navigateToResultsPage(search);
+    }
+
+    const handleSelectChange = (selectedOption) => {
+        setValue('search', selectedOption);
+        handleSubmit(onSubmit)();
+    };
+
     return (
-        <form className='flex flex-row w-[100%]'>
-            <div className="w-[100%]">
-                <Select
-                    inputId="search"
+        <form onSubmit={handleSubmit(onSubmit)} className="flex w-full">
+            <div className="max-w-[40vw] w-full">
+                <Controller
                     name="search"
-                    options={searchOptions}
-                    value={searchValue}
-                    onChange={onSelectChange}
-                    formatOptionLabel={searchOptionLabel}
+                    control={control}
+                    render={({field}) => {
+                        return (
+                            <Select
+                                {...field}
+                                className="select w-full"
+                                options={searchOptions}
+                                value={field.value}
+                                onChange={handleSelectChange}
+                                formatOptionLabel={searchOptionLabel}
+                                placeholder="Search..."
+                                isClearable
+                                styles={{
+                                    control: (baseStyles) => ({
+                                        ...baseStyles,
+                                        borderRadius: '25px',
+                                        height: '44px'
+                                    }),
+                                }}
+                            />
+                        )
+                    }}
                 />
             </div>
+            {
+                isResetAvailable &&
+                <button type="reset" onClick={resetFormClickHandler} className="form-button ml-5">Reset form</button>
+
+            }
         </form>
     )
 }

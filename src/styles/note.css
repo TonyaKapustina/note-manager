@@ -1,0 +1,20 @@
+.note {
+    @apply p-4 pt-6 rounded-lg bg-item-color cursor-pointer
+}
+
+.note-title {
+    @apply text-base truncate text-ellipsis w-full font-semibold flex relative
+}
+
+.note-description {
+    @apply text-base h-[120px]
+}
+
+.note-header {
+    @apply flex items-center pb-4
+}
+
+.note-header-form {
+    left: 0;
+    @apply absolute z-10
+}
