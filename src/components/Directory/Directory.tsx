@@ -32,7 +32,6 @@ export const Directory: FC<DirectoryPropsType> = ({directory}) => {
 
     const isCurrentDirectoryOpen = getOpenDirectoryId(queryId) === directory.id;
     const [isEditing, setIsEditing] = useState(false);
-    const [count, setCount] = useState(0);
 
     const {register, handleSubmit, formState: {errors}, reset} = useForm({
         defaultValues: {
@@ -55,6 +54,7 @@ export const Directory: FC<DirectoryPropsType> = ({directory}) => {
             ...directory,
             name: data.directoryName.trim(),
         });
+        setIsEditing(false);
     }
 
     const onRemoveDirectoryClickHandler = async () => {
@@ -68,7 +68,6 @@ export const Directory: FC<DirectoryPropsType> = ({directory}) => {
             return;
         }
 
-        // @ts-ignore
         if (directory?.children.length || hasDirectoryNotes.length) {
             enqueueSnackbar(ERROR_MESSAGES_CATALOG.DIRECTORY.IS_NOT_EMPTY, {
                 variant: 'error'
@@ -83,9 +82,7 @@ export const Directory: FC<DirectoryPropsType> = ({directory}) => {
     }
 
     const onAddDirectoryClickHandler = async () => {
-        setCount(count + 1);
-        const name = `New directory ${count}`;
-        await triggerAddDirectory({parentId: directory.id, name});
+        await triggerAddDirectory({parentId: directory.id, name: 'New directory'});
     };
 
     return (
@@ -108,6 +105,7 @@ export const Directory: FC<DirectoryPropsType> = ({directory}) => {
                                         const hasDuplicates = directoriesData.some((item) => item.name.toLowerCase() === value.trim().toLowerCase());
 
                                         if (hasDuplicates) {
+                                            setIsEditing(false);
                                             return ERROR_MESSAGES_CATALOG.DIRECTORY.TITLE_HAS_DUPLICATES
                                         }
                                     }
@@ -116,7 +114,6 @@ export const Directory: FC<DirectoryPropsType> = ({directory}) => {
                         />
                     </form>
                 )}
-            {/*@ts-ignore*/}
             <Link href={`/${directory.path.join('/')}`} className="flex items-center justify-between w-full py-4">
                 <div
                     className={`flex flex-row items-center`}>

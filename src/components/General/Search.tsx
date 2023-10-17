@@ -1,11 +1,9 @@
-import React, {FC, useEffect, useState} from "react";
+import React, {FC, useEffect} from "react";
 import Select, {SingleValue} from 'react-select';
 import {useRouter} from "next/router";
 import {useSearch} from "../../hooks/useSearch";
 import {searchOptionTypeEnum} from "../../interfaces/search";
 import {Controller, useForm} from "react-hook-form";
-import CreatableSelect from "react-select/creatable";
-import {useCustomRoute} from "../../hooks/useCustomRoute";
 
 interface OptionType {
     value: string;
@@ -14,7 +12,7 @@ interface OptionType {
 }
 
 type SearchPropsType = {
-    isResetAvailable: boolean
+    isResetAvailable?: boolean
 }
 
 export const Search: FC<SearchPropsType> = ({isResetAvailable = false}) => {
@@ -51,7 +49,7 @@ export const Search: FC<SearchPropsType> = ({isResetAvailable = false}) => {
     );
 
     const navigateToResultsPage = async (option: SingleValue<OptionType>) => {
-        if (option.label) {
+        if (option?.label) {
             const {id, ...rest} = query;
             const updatedQuery = {
                 ...rest,

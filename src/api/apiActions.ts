@@ -1,4 +1,4 @@
-import {NoteTagType, NoteType} from "../interfaces/note";
+import {NoteType} from "../interfaces/note";
 import {DirectoryType} from "../interfaces/directories";
 
 interface IAddDirectoryArg {
@@ -7,17 +7,6 @@ interface IAddDirectoryArg {
 }
 interface IDeleteDirectoryArg {
     id: number;
-}
-interface IEditDirectoryArg {
-    id: number;
-    parentId: number;
-    name: string;
-}
-interface IAddNoticeArg {
-    title: string,
-    description: string,
-    tags: NoteTagType[],
-    directoryId?: number;
 }
 
 export type ApiFunction<T> = (url: string, {arg}: {arg: T}) => Promise<unknown>

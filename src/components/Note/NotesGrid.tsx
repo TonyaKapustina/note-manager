@@ -37,7 +37,6 @@ export const NotesGrid: FC<NotesGridPropsType> = ({notes, currentDirectory}) => 
         }
     }, [notes, trigger]);
 
-    // @ts-ignore
     const sortedNotesByPosition = useMemo(() => notes.sort((a, b) => a.position - b.position), [notes]);
 
     const onSaveClickHandler = async (note: NoteType) => {

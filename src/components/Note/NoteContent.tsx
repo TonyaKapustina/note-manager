@@ -24,14 +24,12 @@ export const NoteContent: FC<NoteContentPropsType> = ({
                                                       }) => {
     const {title, description, id} = note || {};
 
-    const customRoute = useCustomRoute();
     const {openDirectoryNotes, currentDirectory} = useNotesData();
     const {trigger} = useSWRMutation(apiEndpoints.notices, editNotice);
     const {trigger: triggerDeleteNote} = useSWRMutation(apiEndpoints.notices(), deleteNotice);
 
     const [showNoteModal, setShowNoteModal] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
-    const deleteBtn = useRef(null);
 
     const {register, handleSubmit, formState: {errors}, reset} = useForm({
         defaultValues: {
@@ -49,12 +47,6 @@ export const NoteContent: FC<NoteContentPropsType> = ({
         }
     }, [errors?.noteName, reset]);
 
-    const onClickHandler = async (event) => {
-        if (!deleteBtn.current.contains(event.target)) {
-            await customRoute.pushToUrl({noteId: id});
-        }
-    }
-
     const onSaveClickHandler = async (note: NoteType) => {
         await trigger({...note, directoryId: currentDirectory});
     }
@@ -66,7 +58,6 @@ export const NoteContent: FC<NoteContentPropsType> = ({
     }
 
     const onDeleteClickHandler = async () => {
-        await customRoute.resetUrlParams();
         await triggerDeleteNote({id});
     }
 
@@ -74,7 +65,6 @@ export const NoteContent: FC<NoteContentPropsType> = ({
         <>
             <Tooltip text={title} isVisible={showTooltip}>
                 <div
-                    onClick={onClickHandler}
                     onDoubleClick={() => !isEditing && setShowNoteModal(true)}
                     className="note">
                     <div>
@@ -129,7 +119,7 @@ export const NoteContent: FC<NoteContentPropsType> = ({
                                         fill="black"/>
                                 </svg>
                             </button>
-                            <button ref={deleteBtn} className="options" onClick={onDeleteClickHandler}>
+                            <button className="options" onClick={onDeleteClickHandler}>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                      fill="none">
                                     <rect width="24" height="24" rx="4" fill="inherit"/>

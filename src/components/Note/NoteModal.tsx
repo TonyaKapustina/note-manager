@@ -67,12 +67,9 @@ export const NoteModal: FC<NoteModalPropsType> = ({
             ...rest
         };
 
-        // @ts-ignore
-        onSave(note);
+        onSave(note as NoteType);
         setShowModal(false);
     }
-
-    console.log(errors);
 
     const modalContent = (
         <>
@@ -132,7 +129,7 @@ export const NoteModal: FC<NoteModalPropsType> = ({
                                             return (
                                                 <CreatableSelect
                                                     isMulti
-                                                    // @ts-ignore
+                                                    //@ts-ignore
                                                     options={allNoticesTags}
                                                     value={field.value}
                                                     className="form-select"
